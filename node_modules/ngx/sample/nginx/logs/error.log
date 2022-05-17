@@ -1,0 +1,1 @@
+2017/07/06 13:26:03 [warn] 31776#0: the "user" directive makes sense only if the master process runs with super-user privileges, ignored in /Users/kael/Codes/node/ngx/sample/nginx/nginx.conf:5
