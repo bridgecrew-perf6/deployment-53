@@ -1,32 +1,34 @@
 const mongoose = require('mongoose');
 
 const brandSchema = new mongoose.Schema({
-    Name: {
+    name: {
         type: String,
         unique: true
     },
-    LogoImage: String,
-    CoverImage: String,
-    Description: String,
-    SalesCount: {
+    logoImage: String,
+    coverImage: String,
+    description: String,
+    salesCount: {
         type: Number,
-        default : 0
+        default: 0
     },
-    NFTCount: {
+    nftCount: {
         type: Number,
-        default : 0
+        default: 0
     },
-    CreatedBy: {
-        type: mongoose.Schema.ObjectId
+    createdBy: {
+        type: mongoose.Schema.ObjectId,
+        ref: "User",
     },
-    CreatedOn: {
+    createdOn: {
         type: Date,
         default: Date.now,
     },
-    LastUpdatedBy: {
-        type: mongoose.Schema.ObjectId
+    lastUpdatedBy: {
+        type: mongoose.Schema.ObjectId,
+        ref: "User",
     },
-    LastUpdatedOn: {
+    lastUpdatedOn: {
         type: Date,
         default: Date.now,
     },

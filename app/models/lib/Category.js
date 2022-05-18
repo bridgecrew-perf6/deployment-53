@@ -1,22 +1,24 @@
 const mongoose = require('mongoose');
 
 const categorySchema = new mongoose.Schema({
-    Name: {
+    name: {
         type: String,
         unique: true
     },
-    Image: String,
-    CreatedBy: {
-        type: mongoose.Schema.ObjectId
+    image: String,
+    createdBy: {
+        type: mongoose.Schema.ObjectId,
+        ref: "User",
     },
-    CreatedOn: {
+    createdOn: {
         type: Date,
         default: Date.now,
     },
-    LastUpdatedBy: {
-        type: mongoose.Schema.ObjectId
+    lastUpdatedBy: {
+        type: mongoose.Schema.ObjectId,
+        ref: "User",
     },
-    LastUpdatedOn: {
+    lastUpdatedOn: {
         type: Date,
         default: Date.now,
     },

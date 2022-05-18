@@ -1,23 +1,23 @@
 const mongoose = require("mongoose");
 
 const orderSchema = mongoose.Schema({
-  NFTID: {
+  nftID: {
     type: mongoose.Schema.ObjectId,
     ref: "NFT",
   },
-  CollectionAddress: {
+  collectionAddress: {
     type: String,
     require: true
   },
-  SellerID: {
+  sellerID: {
     type: mongoose.Schema.ObjectId,
     ref: "User",
   },
-  SalesType: {
+  salesType: {
     type: Number,
     enum: [0, 1], // 0-Fixed Sale 1-Timed Auction
   },
-  Quantity: {
+  quantity: {
     address: {
       type: String,
       lowercase: true,
@@ -26,42 +26,42 @@ const orderSchema = mongoose.Schema({
       type: Number,
     },
   },
-  Price: {
+  price: {
     type: Number,
   },
-  TokenID: {
+  tokenID: {
     type: String,
   },
-  TokenAddress: {
+  tokenAddress: {
     type: String,
   },
-  Deadline: {
+  deadline: {
     type: Date,
   },
-  PaymentToken: {
+  paymentToken: {
     type: String,
   },
-  Salt: {
+  salt: {
     type: String,
   },
-  Signature: {
+  signature: {
     type: String,
   },
-  CreatedBy: {
+  createdBy: {
     type: mongoose.Schema.ObjectId,
     ref: "User",
   },
-  CreatedOn: {
+  createdOn: {
     type: Date,
     default: Date.now,
   },
-  LastUpdatedBy: {
+  lastUpdatedBy: {
     type: mongoose.Schema.ObjectId,
     ref: "User",
   },
-  LastUpdatedOn: {
+  lastUpdatedOn: {
     type: Date,
     default: Date.now,
-  }
+  },
 });
 module.exports = mongoose.model("Order", orderSchema);

@@ -11,7 +11,7 @@ let signJWT = function (user) {
   return jwt.sign(
     {
       id: user._id,
-      sRole: user.sRole,
+      role: user.role,
     },
     process.env.JWT_SECRET,
     {
@@ -22,17 +22,17 @@ let signJWT = function (user) {
 
 controllers.register = (req, res) => {
   try {
-    if (!req.body.WalletAddress)
+    if (!req.body.walletAddress)
       return res.reply(messages.required_field("Wallet Address"));
 
-    bcrypt.hash(req.body.WalletAddress, saltRounds, (err, hash) => {
+    bcrypt.hash(req.body.walletAddress, saltRounds, (err, hash) => {
       if (err) return res.reply(messages.error());
-      if (!req.body.WalletAddress)
+      if (!req.body.walletAddress)
         return res.reply(messages.required_field("Wallet Address"));
 
       const user = new User({
-        WalletAddress: _.toChecksumAddress(req.body.WalletAddress),
-        sStatus: "active",
+        walletAddress: _.toChecksumAddress(req.body.walletAddress),
+        status: "active",
       });
 
       user
@@ -40,11 +40,11 @@ controllers.register = (req, res) => {
         .then((result) => {
           let token = signJWT(user);
           req.session["_id"] = user._id;
-          req.session["WalletAddress"] = user.WalletAddress;
+          req.session["walletAddress"] = user.walletAddress;
           return res.reply(messages.created("User"), {
             auth: true,
             token,
-            WalletAddress: user.WalletAddress,
+            walletAddress: user.walletAddress,
           });
         })
         .catch((error) => {
@@ -58,27 +58,27 @@ controllers.register = (req, res) => {
 
 controllers.login = (req, res) => {
   try {
-    if (!req.body.WalletAddress)
+    if (!req.body.walletAddress)
       return res.reply(messages.required_field("Wallet Address"));
 
     User.findOne(
       {
-        WalletAddress: _.toChecksumAddress(req.body.WalletAddress),
+        walletAddress: _.toChecksumAddress(req.body.walletAddress),
       },
       (err, user) => {
         if (err) return res.reply(messages.error());
         if (!user) return res.reply(messages.not_found("User"));
 
-        if (user && user.sRole == "user") {
+        if (user && user.role == "user") {
           var token = signJWT(user);
 
           req.session["_id"] = user._id;
-          req.session["WalletAddress"] = user.WalletAddress;
-          req.session["sUsername"] = user.sUsername;
+          req.session["walletAddress"] = user.walletAddress;
+          req.session["username"] = user.username;
           return res.reply(messages.successfully("User Login"), {
             auth: true,
             token,
-            WalletAddress: user.WalletAddress,
+            walletAddress: user.walletAddress,
             userId: user._id,
             user: true,
           });
@@ -116,14 +116,14 @@ controllers.logout = (req, res, next) => {
 
 controllers.checkuseraddress = (req, res) => {
   try {
-    if (!req.body.WalletAddress)
+    if (!req.body.walletAddress)
       return res.reply(messages.required_field("Wallet Address"));
-    if (!validators.isValidWalletAddress(req.body.WalletAddress))
+    if (!validators.isValidwalletAddress(req.body.walletAddress))
       return res.reply(messages.invalid("Wallet Address"));
 
     User.findOne(
       {
-        WalletAddress: _.toChecksumAddress(req.body.WalletAddress),
+        walletAddress: _.toChecksumAddress(req.body.walletAddress),
       },
       (err, user) => {
         if (err) return res.reply(messages.error());
@@ -133,7 +133,7 @@ controllers.checkuseraddress = (req, res) => {
           });
         return res.reply(messages.successfully("User Found"), {
           user: true,
-          sStatus: user.sStatus,
+          status: user.status,
         });
       }
     );
@@ -145,29 +145,29 @@ controllers.checkuseraddress = (req, res) => {
 controllers.adminlogin = (req, res) => {
   try {
     log.green(req.body);
-    log.green(req.body.sEmail);
-    if (!req.body.sEmail) return res.reply(messages.required_field("Email ID"));
-    if (_.isEmail(req.body.sEmail))
+    log.green(req.body.email);
+    if (!req.body.email) return res.reply(messages.required_field("Email ID"));
+    if (_.iemail(req.body.email))
       return res.reply(messages.invalid("Email ID"));
 
     User.findOne(
       {
-        sEmail: req.body.sEmail,
+        email: req.body.email,
       },
       (err, user) => {
         log.error(err);
         if (err) return res.reply(messages.error());
         if (!user) return res.reply(messages.not_found("User"));
 
-        bcrypt.compare(req.body.sPassword, user.sHash, (err, result) => {
-          if (result && user.sRole == "admin") {
+        bcrypt.compare(req.body.password, user.hash, (err, result) => {
+          if (result && user.role == "admin") {
             req.session["admin_id"] = user.id;
-            req.session["admin_firstname"] = user.oName.sFirstname;
+            req.session["admin_fullname"] = user.fullname;
             var token = signJWT(user);
             return res.reply(messages.successfully("Admin Login"), {
               auth: true,
               token,
-              WalletAddress: user.WalletAddress,
+              walletAddress: user.walletAddress,
               user: false,
             });
           } else {
@@ -184,8 +184,8 @@ controllers.adminlogin = (req, res) => {
 controllers.passwordReset = (req, res, next) => {
   try {
     log.red(req.body);
-    if (!req.body.sEmail) return res.reply(messages.required_field("Email ID"));
-    if (_.isEmail(req.body.sEmail))
+    if (!req.body.email) return res.reply(messages.required_field("Email ID"));
+    if (_.iemail(req.body.email))
       return res.reply(messages.invalid("Email ID"));
 
     var randomHash = "";
@@ -195,7 +195,7 @@ controllers.passwordReset = (req, res, next) => {
 
     User.findOne(
       {
-        sEmail: req.body.sEmail,
+        email: req.body.email,
       },
       (err, user) => {
         if (err) return res.reply(messages.error());
@@ -203,12 +203,12 @@ controllers.passwordReset = (req, res, next) => {
 
         User.findOneAndUpdate(
           {
-            sEmail: user.sEmail,
+            email: user.email,
           },
           {
             $set: {
-              sResetPasswordToken: randomHash,
-              sResetPasswordExpires: Date.now() + 600,
+              resetPasswordToken: randomHash,
+              resetPasswordExpires: Date.now() + 600,
             },
           },
           {
@@ -221,12 +221,12 @@ controllers.passwordReset = (req, res, next) => {
           "forgot_password_mail.html",
           {
             SITE_NAME: "DecryptMarketplace",
-            USERNAME: user.oName.sFirstname,
+            USERNAME: user.username,
             ACTIVELINK: `${process.env.BASE_URL}:${process.env.PORT}/api/v1/auth/reset/${randomHash}`,
           },
           {
             from: process.env.SMTP_USERNAME,
-            to: user.sEmail,
+            to: user.email,
             subject: "Forgot Password",
           }
         );
@@ -244,7 +244,7 @@ controllers.passwordResetGet = (req, res, next) => {
 
     User.findOne(
       {
-        sResetPasswordToken: req.params.token,
+        resetPasswordToken: req.params.token,
       },
       function (err, user) {
         if (!user) {
@@ -261,30 +261,30 @@ controllers.passwordResetGet = (req, res, next) => {
 controllers.passwordResetPost = (req, res, next) => {
   try {
     if (!req.params.token) return res.reply(messages.not_found("Token"));
-    if (!req.body.sPassword) return res.reply(messages.not_found("Password"));
-    if (!req.body.sConfirmPassword)
+    if (!req.body.password) return res.reply(messages.not_found("Password"));
+    if (!req.body.confirmPassword)
       return res.reply(messages.not_found("Confirm Password"));
 
-    if (_.isPassword(req.body.sPassword))
+    if (_.ipassword(req.body.password))
       return res.reply(messages.invalid("Password"));
-    if (_.isPassword(req.body.sConfirmPassword))
+    if (_.ipassword(req.body.confirmPassword))
       return res.reply(messages.invalid("Password"));
 
     User.findOne(
       {
-        sResetPasswordToken: req.params.token,
+        resetPasswordToken: req.params.token,
       },
       function (err, user) {
         if (!user) return res.render("error/token_expire");
-        if (req.body.sConfirmPassword !== req.body.sPassword)
+        if (req.body.confirmPassword !== req.body.password)
           return res.reply(messages.bad_request("Password not matched"));
 
-        bcrypt.hash(req.body.sConfirmPassword, saltRounds, (err, hash) => {
+        bcrypt.hash(req.body.confirmPassword, saltRounds, (err, hash) => {
           if (err) return res.reply(messages.error());
 
-          user.sHash = hash;
-          user.sResetPasswordToken = undefined;
-          user.sResetPasswordExpires = undefined;
+          user.hash = hash;
+          user.resetPasswordToken = undefined;
+          user.resetPasswordExpires = undefined;
 
           user.save((err) => {
             if (err) return res.reply(messages.error());

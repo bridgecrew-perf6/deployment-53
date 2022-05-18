@@ -1,83 +1,83 @@
 const mongoose = require("mongoose");
 
 const collectionSchema = mongoose.Schema({
-  Name: {
+  name: {
     type: String,
     require: true,
   },
-  Type: {
+  type: {
     type: String,
     enum: ["Single", "Multiple"],
     default: "Single",
   },
-  LogoImage : { type: String },
-  CoverImage : { type: String },
-  Description : { type: String },
-  CategoryID: {
+  logoImage : { type: String },
+  coverImage : { type: String },
+  description : { type: String },
+  categoryID: {
     type: mongoose.Schema.ObjectId,
     ref: "Category",
   },
-  BrandID: {
+  brandID: {
     type: mongoose.Schema.ObjectId,
     ref: "Brand",
   },
-  ContractAddress: {
+  contractAddress: {
     type: String,
     unique: true,
     require: true,
     lowercase: true,
   },
-  ChainID:{
+  chainID:{
     type : String
   },
-  SalesCount: {
+  salesCount: {
     type: Number,
     default : 0
   },
-  NFTCount: {
+  nftCount: {
       type: Number,
       default : 0
   },
-  VolumeTraded: {
+  volumeTraded: {
     type: Number,
     default : 0
   },
-  PresaleStartTime:{
+  preSaleStartTime:{
     type: Date,
   },
-  TotalSupply: {
+  totalSupply: {
     type: Number,
     default : 0
   },
-  nextId: {
+  nextID: {
     type: Number,
     require: true,
     default: 0,
   },
-  Hash: {
+  hash: {
     type: String,
     require: true,
     unique:true,
   },
-  CreatedBy: {
+  createdBy: {
     type: mongoose.Schema.ObjectId,
     ref: "User",
   },
-  CreatedOn: {
+  createdOn: {
     type: Date,
     default: Date.now,
   },
-  LastUpdatedBy: {
+  lastUpdatedBy: {
     type: mongoose.Schema.ObjectId,
     ref: "User",
   },
-  LastUpdatedOn: {
+  lastUpdatedOn: {
     type: Date,
     default: Date.now,
-  }
+  },
 });
-collectionSchema.methods.getNextId = function () {
-  let nextIddd = this.nextId + 1;
-  return nextIddd;
+collectionSchema.methods.getNextID = function () {
+  let nextIDDD = this.nextID + 1;
+  return nextIDDD;
 };
 module.exports = mongoose.model("Collection", collectionSchema);
