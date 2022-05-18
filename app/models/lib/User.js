@@ -1,42 +1,37 @@
 const mongoose = require("mongoose");
 
 const userSchema = mongoose.Schema({
-  WalletAddress: {
+  walletAddress: {
     type: String,
     unique: true,
     require: true,
   },
-  UserName: {
+  username: {
     type: String,
     default: "",
   },
-  Name: {
-    Firstname: String,
-    Lastname: String,
-  },
-  FullName: {
+  fullname: {
     type: String,
   },
-  Email: {
+  email: {
     type: String,
   },
-  Password:{
+  password:{
     type: String,
   },
-  ProfilePicUrl: String,
-  PhoneNo: String,
-  Role: {
+  profileIcon: String,
+  phoneNo: String,
+  role: {
     type: String,
     enum: ["user","admin","creator", "superadmin"],
     default: "user",
   },
-  Status: {
+  status: {
     type: Number,
     enum: [0, 1],
     default: 1,
   },
-  Bio: String,
-  Website: String,
+  bio: String,
   user_followings: [
     {
       type: mongoose.Schema.ObjectId,
@@ -44,19 +39,19 @@ const userSchema = mongoose.Schema({
     },
   ],
   user_followers_size: { type: Number, default: 0 },
-  CreatedBy: {
+  createdBy: {
     type: mongoose.Schema.ObjectId,
     ref: "User",
   },
-  CreatedOn: {
+  createdOn: {
     type: Date,
     default: Date.now,
   },
-  LastUpdatedBy: {
+  lastUpdatedBy: {
     type: mongoose.Schema.ObjectId,
     ref: "User",
   },
-  LastUpdatedOn: {
+  lastUpdatedOn: {
     type: Date,
     default: Date.now,
   },

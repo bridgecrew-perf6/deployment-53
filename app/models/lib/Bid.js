@@ -1,52 +1,52 @@
 const mongoose = require("mongoose");
 
 const bidSchema = new mongoose.Schema({
-  BidderID: {
+  bidderID: {
     type: mongoose.Schema.ObjectId,
     ref: "User",
   },
-  Owner: {
+  owner: {
     type: mongoose.Schema.ObjectId,
     ref: "User",
   },
-  NFTID: {
+  nftID: {
     type: mongoose.Schema.ObjectId,
     ref: "NFT",
   },
-  OrderId: {
+  orderID: {
     type: mongoose.Schema.ObjectId,
     ref: "Order",
   },
-  BidStatus: {
+  bidStatus: {
     type: String,
     enum: ["Bid", "Cancelled", "Accepted", "Sold", "Rejected", "MakeOffer", "AcceptOffer", "RejectOffer", "CancelledOffer"],
   },
-  BidPrice: {
+  bidPrice: {
     type: mongoose.Types.Decimal128,
     required: true,
   },
-  BidDeadline: {
+  bidDeadline: {
     type: Date
   },
-  BidQuantity: Number,
-  BuyerSignature: Array,
+  bidQuantity: Number,
+  buyerSignature: Array,
   isOffer: {
     type: Boolean,
     default: true,
   },
-  CreatedBy: {
+  createdBy: {
     type: mongoose.Schema.ObjectId,
     ref: "User",
   },
-  CreatedOn: {
+  createdOn: {
     type: Date,
     default: Date.now,
   },
-  LastUpdatedBy: {
+  lastUpdatedBy: {
     type: mongoose.Schema.ObjectId,
     ref: "User",
   },
-  LastUpdatedOn: {
+  lastUpdatedOn: {
     type: Date,
     default: Date.now,
   },

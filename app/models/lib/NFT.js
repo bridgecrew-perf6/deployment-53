@@ -1,44 +1,44 @@
 const mongoose = require("mongoose");
 
 const nftSchema = mongoose.Schema({
-  Name: {
+  name: {
     type: String,
     require: true,
   },
-  Type: {
+  type: {
     type: Number,
     require: true,
     enum: [1, 2],
   },
-  Image: { type: String, require: true },
-  Price: { type: String, require: true },
-  Description: { type: String },
-  CollectionID: {
+  image: { type: String, require: true },
+  price: { type: String, require: true },
+  description: { type: String },
+  collectionID: {
     type: mongoose.Schema.ObjectId,
     ref: "Collection",
   },
-  TokenID: String,
-  AssetsInfo: [
+  tokenID: String,
+  assetsInfo: [
     {
-      Size: String,
-      Type: String,
-      Dimension: String,
+      size: String,
+      type: String,
+      dimension: String,
     },
   ],
-  Attributes: [
+  attributes: [
     {
-      Name: String,
-      Value: String
+      name: String,
+      value: String
     },
   ],
-  Levels: [
+  levels: [
     {
-      Name: String,
-      Value: String
+      name: String,
+      value: String
     },
   ],
-  TotalQuantity: Number,
-  OwnedBy: [
+  totalQuantity: Number,
+  ownedBy: [
     {
       address: {
         type: String,
@@ -49,13 +49,13 @@ const nftSchema = mongoose.Schema({
       },
     },
   ],
-  Properties: [
+  properties: [
     {
       Name: String,
       Value: String
     },
   ],
-  Hash: {
+  hash: {
     type: String,
     require: true,
     unique:true,
@@ -65,21 +65,21 @@ const nftSchema = mongoose.Schema({
     default: 0,
     enum: [0, 1, 2],
   },
-  CreatedBy: {
+  createdBy: {
     type: mongoose.Schema.ObjectId,
     ref: "User",
   },
-  CreatedOn: {
+  createdOn: {
     type: Date,
     default: Date.now,
   },
-  LastUpdatedBy: {
+  lastUpdatedBy: {
     type: mongoose.Schema.ObjectId,
     ref: "User",
   },
-  LastUpdatedOn: {
+  lastUpdatedOn: {
     type: Date,
     default: Date.now,
-  }
+  },
 });
 module.exports = mongoose.model("NFT", nftSchema);
