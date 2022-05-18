@@ -5,7 +5,6 @@ const Collection = require('./lib/Collection');
 const Bid = require('./lib/Bid');
 const NewsLetterEmail = require('./lib/NewsEmail');
 const Category = require('./lib/Category');
-const Aboutus = require('./lib/Aboutus');
 const Terms = require('./lib/Terms');
 const FAQs = require('./lib/FAQs');
 const NFTowners=require('./lib/NFTowners')
@@ -19,7 +18,6 @@ module.exports = {
     Bid,
     NewsLetterEmail,
     Category,
-    Aboutus,
     Terms,
     FAQs,
     NFTowners,
