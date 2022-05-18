@@ -3,7 +3,7 @@ const userController = require("./lib/controllers");
 const userMiddleware = require("./lib/middleware");
 
 router.get("/profile", userMiddleware.verifyToken, userController.profile);
-router.put("/updateProfile", userMiddleware.verifyToken, userController.updateProfile);
+
 router.post("/addCollaborator", userMiddleware.verifyToken, userController.addCollaborator);
 router.post("/collaboratorList", userMiddleware.verifyToken, userController.collaboratorList);
 router.get("/getCollaboratorList", userMiddleware.verifyToken, userController.getCollaboratorList);
@@ -18,5 +18,12 @@ router.get("/getTermsData", userController.getTermsData);
 router.post("/profileDetail", userController.getUserProfilewithNfts);
 router.post( "/profileWithNfts", userMiddleware.verifyWithoutToken, userController.getUserWithNfts);
 router.post( "/allDetails", userMiddleware.verifyWithoutToken, userController.getAllUserDetails);
+
+
+router.put("/updateProfile", userMiddleware.verifyToken, userController.updateProfile);
+router.post("/getAllUsers", userMiddleware.verifyToken, userController.getAllUsers);
+router.get("/GetIndividualUser/:userID", userMiddleware.verifyToken, userController.getIndividualUser);
+router.post("/BlockUser", userMiddleware.verifyToken, userController.blockUser);
 router.post("/follow", userMiddleware.verifyToken, userController.followUser);
+
 module.exports = router;

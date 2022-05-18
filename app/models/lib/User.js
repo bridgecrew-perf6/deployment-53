@@ -11,8 +11,8 @@ const userSchema = mongoose.Schema({
     default: "",
   },
   Name: {
-    sFirstname: String,
-    sLastname: String,
+    Firstname: String,
+    Lastname: String,
   },
   FullName: {
     type: String,
@@ -33,10 +33,10 @@ const userSchema = mongoose.Schema({
   Status: {
     type: Number,
     enum: [0, 1],
-    default: 0,
+    default: 1,
   },
-  sBio: String,
-  sWebsite: String,
+  Bio: String,
+  Website: String,
   user_followings: [
     {
       type: mongoose.Schema.ObjectId,

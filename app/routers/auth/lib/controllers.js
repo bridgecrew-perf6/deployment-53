@@ -24,11 +24,6 @@ controllers.register = (req, res) => {
   try {
     if (!req.body.sWalletAddress)
       return res.reply(messages.required_field("Wallet Address"));
-    // if (!req.body.sMessage)
-    //   return res.reply(messages.required_field("Message"));
-    // if (!req.body.sSignature)
-    //   return res.reply(messages.required_field("Signature"));
-    // if (!validators.isValidSignature(req.body)) return res.reply(messages.invalid('Data'));
 
     bcrypt.hash(req.body.sWalletAddress, saltRounds, (err, hash) => {
       if (err) return res.reply(messages.error());
@@ -65,12 +60,6 @@ controllers.login = (req, res) => {
   try {
     if (!req.body.sWalletAddress)
       return res.reply(messages.required_field("Wallet Address"));
-    // if (!req.body.sMessage)
-    //   return res.reply(messages.required_field("Message"));
-    // if (!req.body.sSignature)
-    //   return res.reply(messages.required_field("Signature"));
-    // if (!validators.isValidSignature(req.body))
-    //   return res.reply(messages.invalid("Data"));
 
     User.findOne(
       {
