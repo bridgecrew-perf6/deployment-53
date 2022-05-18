@@ -1,49 +1,67 @@
 const mongoose = require("mongoose");
 
 const orderSchema = mongoose.Schema({
-  oSellerWalletAddress: String, //walletADDRESS OF Seller
-  oTokenId: Number, //TokenID
-  oTokenAddress: String, // Collection contract address
-  oQuantity: Number,
-  oType: {
-    type: Number,
-    //0 - Buy Now
-    //1 - Auction/Offer
-    //2 - Floor price Bid
-    //3 - Bundle Buy Now
-    //4 - Bundle Auction Offer
-    enum: [0, 1, 2, 3, 4],
-  },
-  oPaymentToken: String, //the payment token address ERC20
-  oPrice: mongoose.Types.Decimal128,
-  oValidUpto: Number,
-  oBundleTokens: Array,
-  oBundleTokensQuantities: Array,
-  oSalt: Number,
-  oNftId: {
+  NFTID: {
     type: mongoose.Schema.ObjectId,
     ref: "NFT",
   },
-  oCreated: {
-    type: Date,
-    default: Date.now,
+  CollectionAddress: {
+    type: String,
+    require: true
   },
-  oSeller: {
+  SellerID: {
     type: mongoose.Schema.ObjectId,
     ref: "User",
   },
-  oSignature: Array,
-  auction_end_date: { type: Date },
-  oStatus: {
+  SalesType: {
     type: Number,
-    default: 1,
-    //0 - inactive
-    //1 - active
-    //2 - completed
-    //3 - cancelled
-    enum: [0, 1, 2, 3],
+    enum: [0, 1], // 0-Fixed Sale 1-Timed Auction
   },
-  quantity_sold: { type: Number, default: 0 },
+  Quantity: {
+    address: {
+      type: String,
+      lowercase: true,
+    },
+    quantity: {
+      type: Number,
+    },
+  },
+  Price: {
+    type: Number,
+  },
+  TokenID: {
+    type: String,
+  },
+  TokenAddress: {
+    type: String,
+  },
+  Deadline: {
+    type: Date,
+  },
+  PaymentToken: {
+    type: String,
+  },
+  Salt: {
+    type: String,
+  },
+  Signature: {
+    type: String,
+  },
+  CreatedBy: {
+    type: mongoose.Schema.ObjectId,
+    ref: "User",
+  },
+  CreatedOn: {
+    type: Date,
+    default: Date.now,
+  },
+  LastUpdatedBy: {
+    type: mongoose.Schema.ObjectId,
+    ref: "User",
+  },
+  LastUpdatedOn: {
+    type: Date,
+    default: Date.now,
+  }
 });
-
 module.exports = mongoose.model("Order", orderSchema);

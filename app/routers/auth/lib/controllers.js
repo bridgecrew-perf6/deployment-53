@@ -22,21 +22,16 @@ let signJWT = function (user) {
 
 controllers.register = (req, res) => {
   try {
-    if (!req.body.sWalletAddress)
+    if (!req.body.WalletAddress)
       return res.reply(messages.required_field("Wallet Address"));
-    // if (!req.body.sMessage)
-    //   return res.reply(messages.required_field("Message"));
-    // if (!req.body.sSignature)
-    //   return res.reply(messages.required_field("Signature"));
-    // if (!validators.isValidSignature(req.body)) return res.reply(messages.invalid('Data'));
 
-    bcrypt.hash(req.body.sWalletAddress, saltRounds, (err, hash) => {
+    bcrypt.hash(req.body.WalletAddress, saltRounds, (err, hash) => {
       if (err) return res.reply(messages.error());
-      if (!req.body.sWalletAddress)
+      if (!req.body.WalletAddress)
         return res.reply(messages.required_field("Wallet Address"));
 
       const user = new User({
-        sWalletAddress: _.toChecksumAddress(req.body.sWalletAddress),
+        WalletAddress: _.toChecksumAddress(req.body.WalletAddress),
         sStatus: "active",
       });
 
@@ -45,11 +40,11 @@ controllers.register = (req, res) => {
         .then((result) => {
           let token = signJWT(user);
           req.session["_id"] = user._id;
-          req.session["sWalletAddress"] = user.sWalletAddress;
+          req.session["WalletAddress"] = user.WalletAddress;
           return res.reply(messages.created("User"), {
             auth: true,
             token,
-            sWalletAddress: user.sWalletAddress,
+            WalletAddress: user.WalletAddress,
           });
         })
         .catch((error) => {
@@ -63,18 +58,12 @@ controllers.register = (req, res) => {
 
 controllers.login = (req, res) => {
   try {
-    if (!req.body.sWalletAddress)
+    if (!req.body.WalletAddress)
       return res.reply(messages.required_field("Wallet Address"));
-    // if (!req.body.sMessage)
-    //   return res.reply(messages.required_field("Message"));
-    // if (!req.body.sSignature)
-    //   return res.reply(messages.required_field("Signature"));
-    // if (!validators.isValidSignature(req.body))
-    //   return res.reply(messages.invalid("Data"));
 
     User.findOne(
       {
-        sWalletAddress: _.toChecksumAddress(req.body.sWalletAddress),
+        WalletAddress: _.toChecksumAddress(req.body.WalletAddress),
       },
       (err, user) => {
         if (err) return res.reply(messages.error());
@@ -84,12 +73,12 @@ controllers.login = (req, res) => {
           var token = signJWT(user);
 
           req.session["_id"] = user._id;
-          req.session["sWalletAddress"] = user.sWalletAddress;
+          req.session["WalletAddress"] = user.WalletAddress;
           req.session["sUsername"] = user.sUsername;
           return res.reply(messages.successfully("User Login"), {
             auth: true,
             token,
-            sWalletAddress: user.sWalletAddress,
+            WalletAddress: user.WalletAddress,
             userId: user._id,
             user: true,
           });
@@ -127,14 +116,14 @@ controllers.logout = (req, res, next) => {
 
 controllers.checkuseraddress = (req, res) => {
   try {
-    if (!req.body.sWalletAddress)
+    if (!req.body.WalletAddress)
       return res.reply(messages.required_field("Wallet Address"));
-    if (!validators.isValidWalletAddress(req.body.sWalletAddress))
+    if (!validators.isValidWalletAddress(req.body.WalletAddress))
       return res.reply(messages.invalid("Wallet Address"));
 
     User.findOne(
       {
-        sWalletAddress: _.toChecksumAddress(req.body.sWalletAddress),
+        WalletAddress: _.toChecksumAddress(req.body.WalletAddress),
       },
       (err, user) => {
         if (err) return res.reply(messages.error());
@@ -178,7 +167,7 @@ controllers.adminlogin = (req, res) => {
             return res.reply(messages.successfully("Admin Login"), {
               auth: true,
               token,
-              sWalletAddress: user.sWalletAddress,
+              WalletAddress: user.WalletAddress,
               user: false,
             });
           } else {
