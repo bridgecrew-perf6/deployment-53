@@ -1,49 +1,67 @@
 const mongoose = require("mongoose");
 
 const orderSchema = mongoose.Schema({
-  oSellerWalletAddress: String, //walletADDRESS OF Seller
-  oTokenId: Number, //TokenID
-  oTokenAddress: String, // Collection contract address
-  oQuantity: Number,
-  oType: {
-    type: Number,
-    //0 - Buy Now
-    //1 - Auction/Offer
-    //2 - Floor price Bid
-    //3 - Bundle Buy Now
-    //4 - Bundle Auction Offer
-    enum: [0, 1, 2, 3, 4],
-  },
-  oPaymentToken: String, //the payment token address ERC20
-  oPrice: mongoose.Types.Decimal128,
-  oValidUpto: Number,
-  oBundleTokens: Array,
-  oBundleTokensQuantities: Array,
-  oSalt: Number,
-  oNftId: {
+  nftID: {
     type: mongoose.Schema.ObjectId,
     ref: "NFT",
   },
-  oCreated: {
-    type: Date,
-    default: Date.now,
+  collectionAddress: {
+    type: String,
+    require: true
   },
-  oSeller: {
+  sellerID: {
     type: mongoose.Schema.ObjectId,
     ref: "User",
   },
-  oSignature: Array,
-  auction_end_date: { type: Date },
-  oStatus: {
+  salesType: {
     type: Number,
-    default: 1,
-    //0 - inactive
-    //1 - active
-    //2 - completed
-    //3 - cancelled
-    enum: [0, 1, 2, 3],
+    enum: [0, 1], // 0-Fixed Sale 1-Timed Auction
   },
-  quantity_sold: { type: Number, default: 0 },
+  quantity: {
+    address: {
+      type: String,
+      lowercase: true,
+    },
+    quantity: {
+      type: Number,
+    },
+  },
+  price: {
+    type: Number,
+  },
+  tokenID: {
+    type: String,
+  },
+  tokenAddress: {
+    type: String,
+  },
+  deadline: {
+    type: Date,
+  },
+  paymentToken: {
+    type: String,
+  },
+  salt: {
+    type: String,
+  },
+  signature: {
+    type: String,
+  },
+  createdBy: {
+    type: mongoose.Schema.ObjectId,
+    ref: "User",
+  },
+  createdOn: {
+    type: Date,
+    default: Date.now,
+  },
+  lastUpdatedBy: {
+    type: mongoose.Schema.ObjectId,
+    ref: "User",
+  },
+  lastUpdatedOn: {
+    type: Date,
+    default: Date.now,
+  },
 });
-
 module.exports = mongoose.model("Order", orderSchema);

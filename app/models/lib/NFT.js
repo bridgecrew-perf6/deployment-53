@@ -1,46 +1,44 @@
 const mongoose = require("mongoose");
 
 const nftSchema = mongoose.Schema({
-  nHash: {
+  name: {
     type: String,
     require: true,
   },
-  nCreated: {
-    type: Date,
-    default: Date.now,
-  },
-  nCreater: {
-    type: mongoose.Schema.ObjectId,
-    ref: "User",
-    require: true,
-  },
-  nOrders: [{ type: mongoose.Schema.ObjectId, ref: "Order" }],
-  nCollection: String,
-  nTitle: String,
-  nCollaborator: Array,
-  nDescription: String,
-  nCollaboratorPercentage: Array,
-  nRoyaltyPercentage: Number,
-  nQuantity: Number,
-  nView: Number,
-  nNftImage: { type: String, require: true },
-  nType: {
+  type: {
     type: Number,
     require: true,
-    //1 - ERC721
-    //2 - ERC1155
     enum: [1, 2],
   },
-  nTokenID: {
-    type: Number,
-    require: true,
+  image: { type: String, require: true },
+  price: { type: String, require: true },
+  description: { type: String },
+  collectionID: {
+    type: mongoose.Schema.ObjectId,
+    ref: "Collection",
   },
-  nUser_likes: [
+  tokenID: String,
+  assetsInfo: [
     {
-      type: mongoose.Schema.ObjectId,
+      size: String,
+      type: String,
+      dimension: String,
     },
   ],
-  nOwnedBy: [
+  attributes: [
+    {
+      name: String,
+      value: String
+    },
+  ],
+  levels: [
+    {
+      name: String,
+      value: String
+    },
+  ],
+  totalQuantity: Number,
+  ownedBy: [
     {
       address: {
         type: String,
@@ -51,18 +49,37 @@ const nftSchema = mongoose.Schema({
       },
     },
   ],
-  nLockedContent: {
+  properties: [
+    {
+      Name: String,
+      Value: String
+    },
+  ],
+  hash: {
     type: String,
+    require: true,
+    unique:true,
   },
-  nLazyMintingStatus:{
-    type:Number,
+  isMinted: {
+    type: Number,
     default: 0,
-
-    //  0: Not lazy minting
-    //  1: lazy minting
-    //  2: isMinted
     enum: [0, 1, 2],
-  }
+  },
+  createdBy: {
+    type: mongoose.Schema.ObjectId,
+    ref: "User",
+  },
+  createdOn: {
+    type: Date,
+    default: Date.now,
+  },
+  lastUpdatedBy: {
+    type: mongoose.Schema.ObjectId,
+    ref: "User",
+  },
+  lastUpdatedOn: {
+    type: Date,
+    default: Date.now,
+  },
 });
-
 module.exports = mongoose.model("NFT", nftSchema);

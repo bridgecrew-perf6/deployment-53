@@ -1,28 +1,57 @@
 const mongoose = require("mongoose");
 
 const historySchema = new mongoose.Schema({
-  nftId: {
+  nftID: {
     type: mongoose.Schema.ObjectId,
     ref: "NFT",
   },
-  userId: {
+  collectionID: {
+    type: mongoose.Schema.ObjectId,
+    ref: "Collection",
+  },
+  brandID: {
+    type: mongoose.Schema.ObjectId,
+    ref: "Brand",
+  },
+  bidID: {
+    type: mongoose.Schema.ObjectId,
+    ref: "Bid",
+  },
+  buyerID: {
     type: mongoose.Schema.ObjectId,
     ref: "User",
   },
-  action: {
-    type: String,
-    enum: ["Bids", "Purchase", "Transfer", "Marketplace", "Creation"],
+  sellerID: {
+    type: mongoose.Schema.ObjectId,
+    ref: "User",
   },
-  actionMeta: {
+  type : { 
     type: String,
-    enum: ["Default","Accept", "Listed", "Unlisted"],
+    enum: ["Bid", "Cancelled", "Accepted", "Sold", "Rejected", "MakeOffer", "AcceptOffer", "RejectOffer", "CancelledOffer"],
   },
-  message: {
+  quantity: Number,
+  price: {
+    type: mongoose.Types.Decimal128,
+    required: true,
+  },
+  transactionHash: {
     type: String,
   },
-  sCreated: {
+  createdBy: {
+    type: mongoose.Schema.ObjectId,
+    ref: "User",
+  },
+  createdOn: {
     type: Date,
-    // default: Date.now,
+    default: Date.now,
+  },
+  lastUpdatedBy: {
+    type: mongoose.Schema.ObjectId,
+    ref: "User",
+  },
+  lastUpdatedOn: {
+    type: Date,
+    default: Date.now,
   },
 });
 

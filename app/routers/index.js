@@ -8,7 +8,7 @@ const compression = require("compression");
 const morgan = require("morgan");
 const routes = require("./routes");
 const htmlRender = require("./render");
-// const fileUpload = require('express-fileupload');
+
 
 function Router() {
   this.app = express();
@@ -33,14 +33,12 @@ function Router() {
     res.header("Access-Control-Allow-Headers", "*");
     if (req.method === "OPTIONS") {
       res.setHeader("Cache-Control", "public, max-age=86400");
-      // No Vary required: cors sets it already set automatically
     }
     next();
   });
 
   this.app.use(bodyParser.json());
   this.app.use(bodyParser.urlencoded({ extended: true }));
-  //  this.app.use(fileUpload());
 }
 
 Router.prototype.initialize = function () {
@@ -59,7 +57,7 @@ Router.prototype.setupMiddleware = function () {
       saveUninitialized: true,
     })
   );
-  // this.app.use(helmet());
+  
   this.app.use(compression());
   this.app.engine("html", require("ejs").renderFile);
   this.app.use(bodyParser.json({ limit: "16mb" }));
