@@ -1,25 +1,18 @@
-const User = require('./lib/User');
+const Bid = require('./lib/Bid');
+const Brand = require('./lib/Brand');
+const Category = require('./lib/Category');
+const Collection = require('./lib/Collection');
+const History = require('./lib/History');
 const NFT = require('./lib/NFT');
 const Order = require('./lib/Order');
-const Collection = require('./lib/Collection');
-const Bid = require('./lib/Bid');
-const NewsLetterEmail = require('./lib/NewsEmail');
-const Category = require('./lib/Category');
-const Terms = require('./lib/Terms');
-const FAQs = require('./lib/FAQs');
-const NFTowners=require('./lib/NFTowners')
-const History = require('./lib/History')
-
+const User = require('./lib/User');
 module.exports = {
-    User,
+    Bid,
+    Brand,
+    Category,
+    Collection,
+    History,
     NFT,
     Order,
-    Collection,
-    Bid,
-    NewsLetterEmail,
-    Category,
-    Terms,
-    FAQs,
-    NFTowners,
-    History
+    User
 };

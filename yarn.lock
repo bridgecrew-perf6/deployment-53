@@ -6937,8 +6937,7 @@
     "web3-utils" "1.7.3"
 
 "webcrypto-shim@github:dignifiedquire/webcrypto-shim#master":
-  "integrity" "sha512-21Jjmnj8Qn6wGGzhQxDRS4TdjAU3zDda67Swz45YY4kPNB43f4eNr+AT2rq9fxZuZJB9vaTXOHWFZNJHK9w3PQ=="
-  "resolved" "https://codeload.github.com/dignifiedquire/webcrypto-shim/tar.gz/190bc9ec341375df6025b17ae12ddb2428ea49c8"
+  "resolved" "git+ssh://git@github.com/dignifiedquire/webcrypto-shim.git#190bc9ec341375df6025b17ae12ddb2428ea49c8"
   "version" "0.1.1"
 
 "webidl-conversions@^3.0.0":
