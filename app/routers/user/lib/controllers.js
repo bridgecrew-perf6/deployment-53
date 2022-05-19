@@ -77,6 +77,8 @@ controllers.profile = (req, res) => {
     // if (!req.userId) {
     //     return res.reply(messages.unauthorized());
     // }
+    console.log("user profile api is hit");
+    console.log("user id is---->",req.userId)
     User.findOne(
       {
         _id: req.userId,
