@@ -7,7 +7,6 @@ router.get("/profile", userMiddleware.verifyToken, userController.profile);
 router.post("/addCollaborator", userMiddleware.verifyToken, userController.addCollaborator);
 router.post("/collaboratorList", userMiddleware.verifyToken, userController.collaboratorList);
 router.get("/getCollaboratorList", userMiddleware.verifyToken, userController.getCollaboratorList);
-router.post("/addNewsLetterEmails", userController.addNewsLetterEmails);
 router.get("/deleteCollaborator/:collaboratorAddress",userMiddleware.verifyToken, userController.deleteCollaborator);
 router.get("/getCollaboratorName/:collaboratorAddress", userMiddleware.verifyToken, userController.getCollaboratorName );
 router.put("/editCollaborator", userMiddleware.verifyToken, userController.editCollaborator);
