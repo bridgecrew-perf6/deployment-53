@@ -7,8 +7,8 @@ const collectionSchema = mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ["Single", "Multiple"],
-    default: "Single",
+    enum: [0, 1],
+    default: 0,
   },
   logoImage : { type: String },
   coverImage : { type: String },
@@ -54,11 +54,11 @@ const collectionSchema = mongoose.Schema({
     require: true,
     default: 0,
   },
-  hash: {
-    type: String,
-    require: true,
-    unique:true,
-  },
+  // hash: {
+  //   type: String,
+  //   require: true,
+  //   unique:true,
+  // },
   createdBy: {
     type: mongoose.Schema.ObjectId,
     ref: "User",

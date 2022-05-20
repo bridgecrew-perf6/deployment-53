@@ -68,94 +68,57 @@ let oMulterObj = {
 
 const upload = multer(oMulterObj).single("nftFile");
 
-
+const uploadBanner = multer(oMulterObj);
 
 controllers.createCollection = async (req, res) => {
   try {
     if (!req.userId) return res.reply(messages.unauthorized());
-
     allowedMimes = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
     errAllowed = "JPG, JPEG, PNG,GIF";
 
-    upload(req, res, function (error) {
+    uploadBanner.fields([{ name: 'logoImage', maxCount: 1 }, { name: 'coverImage', maxCount: 1 }])(req, res, function (error) {
       if (error) {
-        fs.unlinkSync(req.file.path);
+        log.red(error);
+        console.log("Error ");
         return res.reply(messages.bad_request(error.message));
       } else {
+        console.log("Here");
+        log.green(req.body);
+        log.green(req.files.logoImage[0].location);
+        log.green(req.files.coverImage[0].location);
+
         if (!req.body.name) {
-          fs.unlinkSync(req.file.path);
           return res.reply(messages.not_found("Collection Name"));
         }
-        if (!req.file) {
-          fs.unlinkSync(req.file.path);
-          return res.reply(messages.not_found("File"));
-        }
-
         if (!validators.isValidString(req.body.name)) {
-          fs.unlinkSync(req.file.path);
           return res.reply(messages.invalid("Collection Name"));
         }
-        if (req.body.sDescription.trim().length > 1000) {
-          fs.unlinkSync(req.file.path);
+        if (req.body.description.trim().length > 1000) {
           return res.reply(messages.invalid("Description"));
         }
-
-        const oOptions = {
-          pinataMetadata: {
-            name: req.file.originalname,
-          },
-          pinataOptions: {
-            cidVersion: 0,
-          },
-        };
-
-        try {
-          const pathString = "/tmp/";
-          const file = fs.createWriteStream(pathString + req.file.originalname);
-          const request = http.get(`${req.file.location}`, function (response) {
-            var stream = response.pipe(file);
-            const readableStreamForFile = fs.createReadStream(
-              pathString + req.file.originalname
-            );
-            stream.on("finish", async function () {
-              pinata
-                .pinFileToIPFS(readableStreamForFile, oOptions)
-                .then(async (file2) => {
-                  const collection = new Collection({
-                    hash: file2.IpfsHash,
-                    name: req.body.name,
-                    description: req.body.sDescription,
-                    type: req.body.erc721,
-                    contractAddress: req.body.sContractAddress,
-                    oCreatedBy: req.userId,
-                    nextId: 0,
-                    logoImage: req.file.location,
-                    coverImage: req.file.location,
-                    categoryID: req.body.categoryID,
-                    brandID: req.body.brandID,
-                  });
-                  collection
-                    .save()
-                    .then((result) => {
-                      return res.reply(messages.created("Collection"), result);
-                    })
-                    .catch((error) => {
-                      return res.reply(
-                        messages.already_exists("Collection"),
-                        error
-                      );
-                    });
-                })
-                .catch((e) => {
-                  return res.reply(messages.error());
-                });
-            });
-          });
-        } catch (e) {
-          console.log("error in file upload..", e);
-        }
+        const collection = new Collection({
+          name: req.body.name,
+          description: req.body.description,
+          type: req.body.type,
+          contractAddress: req.body.contractAddress,
+          logoImage: req.files.logoImage[0].location,
+          coverImage: req.files.coverImage[0].location,
+          categoryID: req.body.categoryID,
+          brandID: req.body.brandID,
+          chainID: req.body.chainID,
+          preSaleStartTime: req.body.preSaleStartTime,
+          totalSupply: req.body.totalSupply,
+          nextId: 0,
+          createdBy: req.userId,
+        });
+        collection.save().then((result) => {
+          return res.reply(messages.created("Collection"), result);
+        }).catch((error) => {
+          return res.reply(messages.already_exists("Collection"), error);
+        });
       }
     });
+
   } catch (error) {
     return res.reply(messages.server_error());
   }
