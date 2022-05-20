@@ -5,9 +5,18 @@ const brandSchema = new mongoose.Schema({
         type: String,
         unique: true
     },
-    logoImage: String,
-    coverImage: String,
-    description: String,
+    logoImage: {
+        type: String,
+        require: true
+    },
+    coverImage: {
+        type: String,
+        require: true
+    },
+    description: {
+        type: String,
+        require: true
+    },
     salesCount: {
         type: Number,
         default: 0
