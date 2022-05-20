@@ -2,6 +2,9 @@ const router = require("express").Router();
 const nftController = require("./lib/controllers");
 const nftMiddleware = require("./lib/middleware");
 
+
+router.post("/createCollection", nftMiddleware.verifyToken, nftController.createCollection );
+
 router.post("/create", nftMiddleware.verifyToken, nftController.create);
 router.put(
   "/updateNftOrder",
@@ -20,11 +23,7 @@ router.post(
   nftController.getCollectionDetailsByAddress
 );
 
-router.post(
-  "/createCollection",
-  nftMiddleware.verifyToken,
-  nftController.createCollection
-);
+
 router.post(
   "/collectionList",
   // nftMiddleware.verifyToken,

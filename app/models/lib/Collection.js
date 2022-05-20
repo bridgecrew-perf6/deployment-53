@@ -6,9 +6,9 @@ const collectionSchema=mongoose.Schema({
     require: true,
   },
   type: {
-    type: String,
-    enum: ["Single","Multiple"],
-    default: "Single",
+    type: Number,
+    enum: [0, 1],
+    default: 0,
   },
   logoImage: {
     type: String,
@@ -63,11 +63,7 @@ const collectionSchema=mongoose.Schema({
     require: true,
     default: 0,
   },
-  hash: {
-    type: String,
-    require: true,
-    unique: true,
-  },
+
   createdBy: {
     type: mongoose.Schema.ObjectId,
     ref: "User",
