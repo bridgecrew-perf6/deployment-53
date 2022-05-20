@@ -14,7 +14,7 @@ middleware.verifyToken = (req, res, next) => {
                 return res.reply(messages.unauthorized());
             }
             req.userId = decoded.id;
-            req.role = decoded.sRole;
+            req.role = decoded.role;
             next();
         });
     } catch (error) {

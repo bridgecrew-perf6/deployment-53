@@ -31,9 +31,11 @@ controllers.register = (req, res) => {
         return res.reply(messages.required_field("Wallet Address"));
 
       const user = new User({
-        walletAddress: _.toChecksumAddress(req.body.walletAddress)
-      });
 
+        walletAddress: _.toChecksumAddress(req.body.walletAddress)
+
+      });
+      console.log("Wallet "+req.body.walletAddress)
       user
         .save()
         .then((result) => {
@@ -47,7 +49,7 @@ controllers.register = (req, res) => {
           });
         })
         .catch((error) => {
-          console.log("err",error)
+
           return res.reply(messages.already_exists("User"));
         });
     });

@@ -3,7 +3,6 @@ const middleware = {};
 
 middleware.verifyToken = (req, res, next) => {
     try {
-        // if (!req.session["_id"]) return res.reply(messages.unauthorized());
         var token = req.headers.authorization;
         if (!token) {
             return res.reply(messages.unauthorized());
@@ -12,18 +11,11 @@ middleware.verifyToken = (req, res, next) => {
         jwt.verify(token, process.env.JWT_SECRET, function (err, decoded) {
             if (err) return res.reply(messages.unauthorized());
 
-            if (decoded.sRole === "user") {
+            if (decoded.role === "user") {
                 req.userId = decoded.id ? decoded.id : '';
-                req.role = decoded.sRole ? decoded.sRole : '';
-                req.name = decoded.oName ? decoded.oName: '';
-                req.email = decoded.sEmail?  decoded.sEmail :'';
-
-console.log('--------req.userId --------',req.userId );
-console.log('--------req.role --------',req.role )
-console.log('--------req.email --------',req.email )
-
-console.log('--------req.name --------',req.name )
-
+                req.role = decoded.role ? decoded.role : '';
+                req.name = decoded.name ? decoded.name: '';
+                req.email = decoded.email?  decoded.email :'';
                 next();
             } else
                 return res.reply(messages.unauthorized());
