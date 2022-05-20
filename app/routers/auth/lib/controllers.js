@@ -118,7 +118,7 @@ controllers.checkuseraddress = (req, res) => {
   try {
     if (!req.body.walletAddress)
       return res.reply(messages.required_field("Wallet Address"));
-    if (!validators.isValidwalletAddress(req.body.walletAddress))
+    if (!validators.isValidWalletAddress(req.body.walletAddress))
       return res.reply(messages.invalid("Wallet Address"));
 
     User.findOne(
