@@ -1,44 +1,83 @@
 const mongoose = require("mongoose");
 
 const collectionSchema = mongoose.Schema({
-  sHash: {
+  name: {
     type: String,
     require: true,
-    unique: false,
   },
-  collectionImage: { type: String, require: true },
-  sContractAddress: {
+  type: {
+    type: String,
+    enum: ["Single", "Multiple"],
+    default: "Single",
+  },
+  logoImage : { type: String },
+  coverImage : { type: String },
+  description : { type: String },
+  categoryID: {
+    type: mongoose.Schema.ObjectId,
+    ref: "Category",
+  },
+  brandID: {
+    type: mongoose.Schema.ObjectId,
+    ref: "Brand",
+  },
+  contractAddress: {
     type: String,
     unique: true,
     require: true,
     lowercase: true,
   },
-  erc721: {
-    type: Boolean,
-    require: true,
-    default: true,
+  chainID:{
+    type : String
   },
-  nextId: {
+  salesCount: {
+    type: Number,
+    default : 0
+  },
+  nftCount: {
+      type: Number,
+      default : 0
+  },
+  volumeTraded: {
+    type: Number,
+    default : 0
+  },
+  preSaleStartTime:{
+    type: Date,
+  },
+  totalSupply: {
+    type: Number,
+    default : 0
+  },
+  nextID: {
     type: Number,
     require: true,
     default: 0,
   },
-  sCreated: {
-    type: Date,
-    default: Date.now,
+  hash: {
+    type: String,
+    require: true,
+    unique:true,
   },
-  oCreatedBy: {
+  createdBy: {
     type: mongoose.Schema.ObjectId,
     ref: "User",
   },
-  sRoyaltyPercentage: Number,
-  sName: String,
-  sDescription: String,
+  createdOn: {
+    type: Date,
+    default: Date.now,
+  },
+  lastUpdatedBy: {
+    type: mongoose.Schema.ObjectId,
+    ref: "User",
+  },
+  lastUpdatedOn: {
+    type: Date,
+    default: Date.now,
+  },
 });
-
-collectionSchema.methods.getNextId = function () {
-  let nextIddd = this.nextId + 1;
-  return nextIddd;
+collectionSchema.methods.getNextID = function () {
+  let nextIDDD = this.nextID + 1;
+  return nextIDDD;
 };
-
 module.exports = mongoose.model("Collection", collectionSchema);

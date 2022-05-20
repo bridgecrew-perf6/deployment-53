@@ -1,42 +1,59 @@
 const mongoose = require("mongoose");
 
 const userSchema = mongoose.Schema({
-  sWalletAddress: {
+  walletAddress: {
     type: String,
     unique: true,
     require: true,
   },
-  sUserName: {
+  username: {
     type: String,
     default: "",
   },
-  sEmail: {
+  fullname: {
     type: String,
   },
-  oName: {
-    sFirstname: String,
-    sLastname: String,
-  },
-  sRole: {
+  email: {
     type: String,
-    enum: ["user", "admin"],
+  },
+  password:{
+    type: String,
+  },
+  profileIcon: String,
+  phoneNo: String,
+  role: {
+    type: String,
+    enum: ["user","admin","creator", "superadmin"],
     default: "user",
   },
-  sCreated: {
-    type: Date,
-    default: Date.now,
+  status: {
+    type: Number,
+    enum: [0, 1],
+    default: 1,
   },
-  sStatus: String,
-  sHash: String,
-  sBio: String,
-  sWebsite: String,
-  sProfilePicUrl: String,
+  bio: String,
   user_followings: [
     {
       type: mongoose.Schema.ObjectId,
+      ref: "User",
     },
   ],
   user_followers_size: { type: Number, default: 0 },
+  createdBy: {
+    type: mongoose.Schema.ObjectId,
+    ref: "User",
+  },
+  createdOn: {
+    type: Date,
+    default: Date.now,
+  },
+  lastUpdatedBy: {
+    type: mongoose.Schema.ObjectId,
+    ref: "User",
+  },
+  lastUpdatedOn: {
+    type: Date,
+    default: Date.now,
+  },
 });
-// userSchema.set( 'toJSON', { getters: true } )
 module.exports = mongoose.model("User", userSchema);

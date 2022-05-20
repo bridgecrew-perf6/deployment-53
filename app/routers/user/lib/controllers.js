@@ -17,7 +17,6 @@ const pinata = pinataSDK(
 );
 const {
   User,
-  NewsLetterEmail,
   Category,
   Aboutus,
   Terms,
@@ -49,7 +48,6 @@ const storage = multerS3({
 
 let fileFilter = function (req, file, cb) {
   var allowedMimes = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
-
   if (allowedMimes.includes(file.mimetype)) {
     cb(null, true);
   } else {
@@ -63,7 +61,6 @@ let fileFilter = function (req, file, cb) {
     );
   }
 };
-
 let oMulterObj = {
   storage: storage,
   limits: {
@@ -84,14 +81,14 @@ controllers.profile = (req, res) => {
         _id: req.userId,
       },
       {
-        oName: 1,
-        sUserName: 1,
+        Name: 1,
+        username: 1,
         sCreated: 1,
-        sEmail: 1,
-        sWalletAddress: 1,
-        sProfilePicUrl: 1,
-        sWebsite: 1,
-        sBio: 1,
+        email: 1,
+        swalletAddress: 1,
+        profileIcon: 1,
+        Website: 1,
+        bio: 1,
         user_followings_size: {
           $cond: {
             if: {
@@ -121,36 +118,28 @@ const upload = multer(oMulterObj).single("userProfile");
 controllers.updateProfile = async (req, res, next) => {
   try {
     if (!req.userId) return res.reply(messages.unauthorized());
-
-    // File upload
-    let oProfileDetails = {};
-
+    let profileDetails = {};
     await upload(req, res, async (error) => {
       if (error) return res.reply(messages.bad_request(error.message));
-
       await User.findOne(
         {
-          sUserName: req.body.sUserName,
+          username: req.body.username,
         },
         async (err, user) => {
-          if (err) return res.reply("hhh");
+          if (err) return res.reply("Error While checking username");
           if (user)
             if (user._id.toString() !== req.userId.toString()) {
               return res.reply(
                 messages.already_exists(
-                  "User with Username '" + req.body.sUserName + "'"
+                  "User with username '" + req.body.username + "'"
                 )
               );
             }
-          oProfileDetails = {
-            sUserName: req.body.sUserName,
-            oName: {
-              sFirstname: req.body.sFirstname,
-              sLastname: req.body.sLastname,
-            },
-            sWebsite: req.body.sWebsite,
-            sBio: req.body.sBio,
-            sEmail: req.body.sEmail,
+          profileDetails = {
+            username: req.body.username,
+            fullname : req.body.fullname,
+            bio: req.body.bio,
+            email: req.body.email,
           };
 
           console.log("here--->>");
@@ -165,17 +154,17 @@ controllers.updateProfile = async (req, res, next) => {
               return res.reply(messages.invalid("File Type"));
             }
 
-            oProfileDetails["sProfilePicUrl"] = req.file.location;
+            profileDetails["profileIcon"] = req.file.location;
 
             console.log("req.file.location", req.file.location);
           }
           await User.findByIdAndUpdate(
             req.userId,
-            oProfileDetails,
+            profileDetails,
             (err, user) => {
               if (err) return res.reply(messages.server_error());
               if (!user) return res.reply(messages.not_found("User"));
-              req.session["name"] = req.body.sFirstname;
+              req.session["name"] = req.body.Firstname;
               return res.reply(messages.successfully("User Details Updated"));
             }
           ).catch((e) => {
@@ -194,11 +183,11 @@ controllers.addCollaborator = async (req, res) => {
     if (!req.userId) return res.reply(messages.unauthorized());
     if (!req.body) return res.reply(messages.not_found("Collaborator Details"));
 
-    if (!validators.isValidWalletAddress(req.body.sAddress))
+    if (!validators.isValidwalletAddress(req.body.sAddress))
       return res.reply(messages.invalid("Collaborator Address"));
     if (
-      !validators.isValidString(req.body.sFullname) ||
-      !validators.isValidName(req.body.sFullname)
+      !validators.isValidString(req.body.sfullname) ||
+      !validators.isValidName(req.body.sfullname)
     )
       return res.reply(messages.invalid("Collaborator Name"));
 
@@ -208,7 +197,7 @@ controllers.addCollaborator = async (req, res) => {
       if (err) return res.reply(messages.server_error());
       if (!user) return res.reply(messages.not_found("User"));
 
-      if (user.sWalletAddress == req.body.sAddress)
+      if (user.swalletAddress == req.body.sAddress)
         return res.reply(
           messages.bad_request("You Can't Add Yourself As a Collaborator")
         );
@@ -317,29 +306,29 @@ controllers.getCollaboratorList = (req, res) => {
   }
 };
 
-controllers.addNewsLetterEmails = async (req, res) => {
+controllers.addNewsLetteremails = async (req, res) => {
   try {
-    if (!req.body.sName || !req.body.sEmail)
-      return res.reply(messages.required_field("Name and Email "));
-    if (_.isEmail(req.body.sEmail)) return res.reply(messages.invalid("Email"));
-    if (_.isUserName(req.body.sName))
-      return res.reply(messages.invalid("Username"));
+    if (!req.body.sName || !req.body.email)
+      return res.reply(messages.required_field("Name and email "));
+    if (_.iemail(req.body.email)) return res.reply(messages.invalid("email"));
+    if (_.iusername(req.body.sName))
+      return res.reply(messages.invalid("username"));
 
-    const newsLetterEmail = new NewsLetterEmail({
+    const newsLetteremail = new NewsLetteremail({
       sName: req.body.sName,
-      sEmail: req.body.sEmail,
+      email: req.body.email,
     });
-    newsLetterEmail
+    newsLetteremail
       .save()
       .then((result) => {
         return res.reply(messages.success(), {
           Name: req.body.sName,
-          Email: req.body.sEmail,
+          email: req.body.email,
         });
       })
       .catch((error) => {
         if (error.code == 11000)
-          return res.reply(messages.already_exists("Email"));
+          return res.reply(messages.already_exists("email"));
         return res.reply(messages.error());
       });
   } catch (err) {
@@ -354,7 +343,7 @@ controllers.deleteCollaborator = (req, res) => {
     if (!req.params.collaboratorAddress)
       return res.reply(messages.not_found("Collaborator Address"));
 
-    if (!validators.isValidWalletAddress(req.params.collaboratorAddress))
+    if (!validators.isValidwalletAddress(req.params.collaboratorAddress))
       return res.reply(messages.invalid("Collaborator Address"));
 
     User.findById(req.userId, (err, user) => {
@@ -393,7 +382,7 @@ controllers.getCollaboratorName = (req, res) => {
     if (!req.params.collaboratorAddress)
       return res.reply(messages.not_found("Collaborator Address"));
 
-    if (!validators.isValidWalletAddress(req.params.collaboratorAddress))
+    if (!validators.isValidwalletAddress(req.params.collaboratorAddress))
       return res.reply(messages.invalid("Collaborator Address"));
 
     User.findById(req.userId, (err, user) => {
@@ -426,20 +415,20 @@ controllers.editCollaborator = async (req, res) => {
     if (!req.userId) return res.reply(messages.unauthorized());
     if (!req.body) return res.reply(messages.not_found("Collaborator Details"));
 
-    if (!validators.isValidWalletAddress(req.body.sAddress))
+    if (!validators.isValidwalletAddress(req.body.sAddress))
       return res.reply(messages.invalid("Collaborator Address"));
-    if (!validators.isValidWalletAddress(req.body.sPreviousAddress))
+    if (!validators.isValidwalletAddress(req.body.sPreviousAddress))
       return res.reply(messages.invalid("Previous Address"));
     if (
-      !validators.isValidString(req.body.sFullname) ||
-      !validators.isValidName(req.body.sFullname)
+      !validators.isValidString(req.body.sfullname) ||
+      !validators.isValidName(req.body.sfullname)
     )
       return res.reply(messages.invalid("Collaborator Name"));
 
     req.body.sAddress = _.toChecksumAddress(req.body.sAddress);
 
     let aUsers = await User.find({
-      sWalletAddress: req.body.sAddress,
+      swalletAddress: req.body.sAddress,
     });
 
     if (!aUsers.length)
@@ -451,7 +440,7 @@ controllers.editCollaborator = async (req, res) => {
       if (err) return res.reply(messages.server_error());
       if (!user) return res.reply(messages.not_found("User"));
 
-      if (user.sWalletAddress == req.body.sAddress)
+      if (user.swalletAddress == req.body.sAddress)
         return res.reply(
           messages.bad_request("You Can't Add Yourself As a Collaborator")
         );
@@ -459,7 +448,7 @@ controllers.editCollaborator = async (req, res) => {
       let aUserCollaborators = user.aCollaborators;
       aUserCollaborators.forEach((oCollaborator, index) => {
         if (oCollaborator.sAddress == req.body.sPreviousAddress) {
-          aUserCollaborators[index].sFullname = req.body.sFullname;
+          aUserCollaborators[index].sfullname = req.body.sfullname;
           aUserCollaborators[index].sAddress = req.body.sAddress;
           return;
         }
@@ -566,27 +555,27 @@ controllers.getUserProfilewithNfts = async (req, res) => {
         _id: req.body.userId,
       },
       {
-        oName: 1,
-        sUserName: 1,
+        Name: 1,
+        username: 1,
         sCreated: 1,
-        sEmail: 1,
-        sWalletAddress: 1,
-        sProfilePicUrl: 1,
-        sWebsite: 1,
-        sBio: 1,
+        email: 1,
+        swalletAddress: 1,
+        profileIcon: 1,
+        Website: 1,
+        bio: 1,
         user_followings: req.body.currUserId
           ? {
-              $filter: {
-                input: "$user_followings",
-                as: "user_followings",
-                cond: {
-                  $eq: [
-                    "$$user_followings",
-                    mongoose.Types.ObjectId(req.body.currUserId),
-                  ],
-                },
+            $filter: {
+              input: "$user_followings",
+              as: "user_followings",
+              cond: {
+                $eq: [
+                  "$$user_followings",
+                  mongoose.Types.ObjectId(req.body.currUserId),
+                ],
               },
-            }
+            },
+          }
           : [],
         user_followings_size: {
           $cond: {
@@ -791,28 +780,29 @@ controllers.getAllUserDetails = async (req, res) => {
     let UserSearchObj = Object.assign({}, UserSearchArray);
     console.log(UserSearchObj);
     let totalCount = 0;
-    if (sTextsearch === "") { 
+    if (sTextsearch === "") {
       totalCount = await User.countDocuments(UserSearchObj).exec()
-    }else{
-      totalCount = await User.countDocuments({ 
-      '_id' : { $ne: mongoose.Types.ObjectId(req.userId) },
-      $or:[
-        {
-          "$expr": {
-            "$regexMatch": {
-              "input": { "$concat": ["$oName.sFirstname", " ", "$oName.sLastname"] },
-              "regex": new RegExp(sTextsearch),  //Your text search here
-              "options": "i"
+    } else {
+      totalCount = await User.countDocuments({
+        '_id': { $ne: mongoose.Types.ObjectId(req.userId) },
+        $or: [
+          {
+            "$expr": {
+              "$regexMatch": {
+                "input": { "$concat": ["$Name.Firstname", " ", "$Name.Lastname"] },
+                "regex": new RegExp(sTextsearch),  //Your text search here
+                "options": "i"
+              }
             }
-          }
-      },
-        { 'sUserName' : {  $regex: new RegExp(sTextsearch), $options: "i" } },
-        { 'sWalletAddress' : {  $regex: new RegExp(sTextsearch), $options: "i" } }
-      ]} ).exec()
+          },
+          { 'username': { $regex: new RegExp(sTextsearch), $options: "i" } },
+          { 'swalletAddress': { $regex: new RegExp(sTextsearch), $options: "i" } }
+        ]
+      }).exec()
     }
 
     const results = {};
-    if ( endIndex < totalCount ) {
+    if (endIndex < totalCount) {
       results.next = {
         page: page + 1,
         limit: limit,
@@ -824,89 +814,91 @@ controllers.getAllUserDetails = async (req, res) => {
         limit: limit,
       };
     }
-    if (sTextsearch !== "") { 
+    if (sTextsearch !== "") {
       await User.find(UserSearchObj)
-      .find({$or:[
-        {
-        "$expr": {
-          "$regexMatch": {
-            "input": { "$concat": ["$oName.sFirstname", " ", "$oName.sLastname"] },
-            "regex": new RegExp(sTextsearch),  //Your text search here
-            "options": "i"
-          }
-        }
-        },
-        { 'sUserName' : {  $regex: new RegExp(sTextsearch), $options: "i" } },
-        { 'sWalletAddress' : {  $regex: new RegExp(sTextsearch), $options: "i" } }
-      ]})
-      .sort({ sCreated: -1 })
-      .select({
-        sWalletAddress: 1,
-        sUserName: 1,
-        sEmail: 1,
-        oName: 1,
-        sRole: 1,
-        sCreated: 1,
-        sStatus: 1,
-        sHash: 1,
-        sBio: 1,
-        sWebsite: 1,
-        sProfilePicUrl: 1,
-        aCollaborators: 1,
-        sResetPasswordToken: 1,
-        sResetPasswordExpires: 1,
-        is_user_following: "false",
-        user_followings: 1
-      })
-      .limit(limit)
-      .skip(startIndex)
-      .lean()
-      .exec()
-      .then((res) => {
-        data.push(res);
-      })
-      .catch((e) => {
-        console.log("Error", e);
-      });
+        .find({
+          $or: [
+            {
+              "$expr": {
+                "$regexMatch": {
+                  "input": { "$concat": ["$Name.Firstname", " ", "$Name.Lastname"] },
+                  "regex": new RegExp(sTextsearch),  //Your text search here
+                  "options": "i"
+                }
+              }
+            },
+            { 'username': { $regex: new RegExp(sTextsearch), $options: "i" } },
+            { 'swalletAddress': { $regex: new RegExp(sTextsearch), $options: "i" } }
+          ]
+        })
+        .sort({ sCreated: -1 })
+        .select({
+          swalletAddress: 1,
+          username: 1,
+          email: 1,
+          Name: 1,
+          srole: 1,
+          sCreated: 1,
+          sStatus: 1,
+          sHash: 1,
+          bio: 1,
+          Website: 1,
+          profileIcon: 1,
+          aCollaborators: 1,
+          sResetPasswordToken: 1,
+          sResetPasswordExpires: 1,
+          is_user_following: "false",
+          user_followings: 1
+        })
+        .limit(limit)
+        .skip(startIndex)
+        .lean()
+        .exec()
+        .then((res) => {
+          data.push(res);
+        })
+        .catch((e) => {
+          console.log("Error", e);
+        });
 
-    }else{
+    } else {
 
       await User.find(UserSearchObj)
-      .sort({ sCreated: -1 })
-      .select({
-        sWalletAddress: 1,
-        sUserName: 1,
-        sEmail: 1,
-        oName: 1,
-        sRole: 1,
-        sCreated: 1,
-        sStatus: 1,
-        sHash: 1,
-        sBio: 1,
-        sWebsite: 1,
-        sProfilePicUrl: 1,
-        aCollaborators: 1,
-        sResetPasswordToken: 1,
-        sResetPasswordExpires: 1,
-        is_user_following: "false",
-        user_followings: 1
-      })
-      .limit(limit)
-      .skip(startIndex)
-      .lean()
-      .exec()
-      .then((res) => {
-        data.push(res);
-      })
-      .catch((e) => {
-        console.log("Error", e);
-      });
+        .sort({ sCreated: -1 })
+        .select({
+          swalletAddress: 1,
+          username: 1,
+          email: 1,
+          Name: 1,
+          srole: 1,
+          sCreated: 1,
+          sStatus: 1,
+          sHash: 1,
+          bio: 1,
+          Website: 1,
+          profileIcon: 1,
+          aCollaborators: 1,
+          sResetPasswordToken: 1,
+          sResetPasswordExpires: 1,
+          is_user_following: "false",
+          user_followings: 1
+        })
+        .limit(limit)
+        .skip(startIndex)
+        .lean()
+        .exec()
+        .then((res) => {
+          data.push(res);
+        })
+        .catch((e) => {
+          console.log("Error", e);
+        });
     }
-    
-      results.count = totalCount;
-      results.results = data;
-      res.header('Access-Control-Max-Age', 600);
-      return res.reply(messages.success("Author List"), results);
+
+    results.count = totalCount;
+    results.results = data;
+    res.header('Access-Control-Max-Age', 600);
+    return res.reply(messages.success("Author List"), results);
   } catch (error) {
     log.red(error);
     return res.reply(messages.server_error());
@@ -929,8 +921,8 @@ controllers.followUser = async (req, res) => {
           let followARY =
             userData.user_followings && userData.user_followings.length
               ? userData.user_followings.filter(
-                  (v) => v.toString() == req.userId.toString()
-                )
+                (v) => v.toString() == req.userId.toString()
+              )
               : [];
           let CurrUser = User.findOne({
             _id: mongoose.Types.ObjectId(req.userId),
@@ -981,4 +973,128 @@ controllers.followUser = async (req, res) => {
   }
 };
 
+controllers.getAllUsers = async (req, res) => {
+  try {
+    let data = [];
+    let searchText = req.body.searchText;
+    let hideBlocked = parseInt(req.body.hideBlocked);
+    const page = parseInt(req.body.page);
+    const limit = parseInt(req.body.limit);
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+
+    let UserSearchArray = [];
+    if (hideBlocked === 0) {
+      UserSearchArray["Status"] = 1
+    }
+    if (searchText !== "") {
+      UserSearchArray["or"] = [
+        { 'username' : {  $regex: new RegExp(searchText), $options: "i" } },
+        { 'fullname' : {  $regex: new RegExp(searchText), $options: "i" } },
+        { 'walletAddress' : {  $regex: new RegExp(searchText), $options: "i" } }
+      ];
+    }
+    let UserSearchObj = Object.assign({}, UserSearchArray);
+    const results = {};
+    if (endIndex < (await User.countDocuments(UserSearchObj).exec())) {
+      results.next = {
+        page: page + 1,
+        limit: limit,
+      };
+    }
+    if (startIndex > 0) {
+      results.previous = {
+        page: page - 1,
+        limit: limit,
+      };
+    }
+    await User.find(UserSearchObj)
+      .sort({ nCreated: -1 })
+      .select({
+        walletAddress: 1,
+        username: 1,
+        fullname: 1,
+        email: 1,
+        profileIcon: 1,
+        phoneNo: 1,
+        role: 1,
+        Status: 1,
+        bio: 1,
+        user_followings: 1,
+        user_followers_size: 1,
+        createdBy: 1,
+        createdOn: 1,
+        lastUpdatedBy: 1,
+        lastUpdatedOn: 1
+      })
+      .limit(limit)
+      .skip(startIndex)
+      .lean()
+      .exec()
+      .then((res) => {
+        data.push(res);
+      })
+      .catch((e) => {
+        console.log("Error", e);
+      });
+
+    results.count = await User.countDocuments(UserSearchObj).exec();
+    results.results = data;
+    res.header("Access-Control-Max-Age", 600);
+    return res.reply(messages.success("User List"), results);
+  } catch (error) {
+    console.log("Error:", error);
+    return res.reply(messages.error());
+  }
+};
+
+
+controllers.getIndividualUser = async (req, res) => {
+  try {
+    if (!req.userId) return res.reply(messages.unauthorized());
+    if (!req.params.userID)
+      return res.reply(messages.not_found("User ID"));
+
+    User.findById(req.userId, (err, user) => {
+      if (err) return res.reply(messages.server_error());
+      if (!user) return res.reply(messages.not_found("User"));
+      return res.reply(messages.successfully("User Details Found"), user);
+    });
+  } catch (error) {
+    return res.reply(messages.server_error());
+  }
+};
+module.exports = controllers;
+
+controllers.blockUser = async (req, res) => {
+  try {
+    if (!req.userId) return res.reply(messages.unauthorized());
+    if (!req.body.userID)
+      return res.reply(messages.not_found("User ID"));
+
+    User.findById(req.userId, async (err, user) => {
+      if (err) return res.reply(messages.server_error());
+      if (!user) return res.reply(messages.not_found("User"));
+      let userStatus = user.status;
+      let UpdateduserStatus = 0;
+      let StatusText = "";
+      if(userStatus === 1){
+        StatusText = "Blocked";
+        UpdateduserStatus = 0;
+      }else{
+        StatusText = "unBlocked";
+        UpdateduserStatus = 1;
+      }
+      await User.findOneAndUpdate(
+        { _id: mongoose.Types.ObjectId(req.body.userID) },
+        { status: UpdateduserStatus }
+      ).catch((e) => {
+        console.log("Error1", e.message);
+      });
+      return res.reply(messages.successfully("User "+StatusText+" Successfully"), user);
+    });
+  } catch (error) {
+    return res.reply(messages.server_error());
+  }
+};
 module.exports = controllers;

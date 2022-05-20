@@ -1,18 +1,26 @@
 const mongoose = require('mongoose');
 
 const categorySchema = new mongoose.Schema({
-    sName: {
+    name: {
         type: String,
         unique: true
     },
-    sStatus: {
-        type: String,
-        default: 'Active',
-        enum: ['Active', 'Deactivated']
+    image: String,
+    createdBy: {
+        type: mongoose.Schema.ObjectId,
+        ref: "User",
     },
-    sCreated: {
+    createdOn: {
         type: Date,
-        default: Date.now
+        default: Date.now,
+    },
+    lastUpdatedBy: {
+        type: mongoose.Schema.ObjectId,
+        ref: "User",
+    },
+    lastUpdatedOn: {
+        type: Date,
+        default: Date.now,
     },
 });
 
