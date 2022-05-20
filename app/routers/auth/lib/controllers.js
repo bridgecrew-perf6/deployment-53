@@ -31,8 +31,7 @@ controllers.register = (req, res) => {
         return res.reply(messages.required_field("Wallet Address"));
 
       const user = new User({
-        walletAddress: _.toChecksumAddress(req.body.walletAddress),
-        status: "active",
+        walletAddress: _.toChecksumAddress(req.body.walletAddress)
       });
 
       user
@@ -48,6 +47,7 @@ controllers.register = (req, res) => {
           });
         })
         .catch((error) => {
+          console.log("err",error)
           return res.reply(messages.already_exists("User"));
         });
     });
@@ -118,9 +118,9 @@ controllers.checkuseraddress = (req, res) => {
   try {
     if (!req.body.walletAddress)
       return res.reply(messages.required_field("Wallet Address"));
-    if (!validators.isValidwalletAddress(req.body.walletAddress))
+    if (!validators.isValidWalletAddress(req.body.walletAddress))
       return res.reply(messages.invalid("Wallet Address"));
-
+    
     User.findOne(
       {
         walletAddress: _.toChecksumAddress(req.body.walletAddress),
@@ -138,7 +138,7 @@ controllers.checkuseraddress = (req, res) => {
       }
     );
   } catch (error) {
-    return res.reply(messages.server_error());
+    return res.reply(error);
   }
 };
 
