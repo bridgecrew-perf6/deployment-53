@@ -6,7 +6,7 @@ const collectionSchema = mongoose.Schema({
     require: true,
   },
   type: {
-    type: String,
+    type: Number,
     enum: [0, 1],
     default: 0,
   },
