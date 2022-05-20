@@ -68,6 +68,99 @@ let oMulterObj = {
 
 const upload = multer(oMulterObj).single("nftFile");
 
+
+
+controllers.createCollection = async (req, res) => {
+  try {
+    if (!req.userId) return res.reply(messages.unauthorized());
+
+    allowedMimes = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
+    errAllowed = "JPG, JPEG, PNG,GIF";
+
+    upload(req, res, function (error) {
+      if (error) {
+        fs.unlinkSync(req.file.path);
+        return res.reply(messages.bad_request(error.message));
+      } else {
+        if (!req.body.name) {
+          fs.unlinkSync(req.file.path);
+          return res.reply(messages.not_found("Collection Name"));
+        }
+        if (!req.file) {
+          fs.unlinkSync(req.file.path);
+          return res.reply(messages.not_found("File"));
+        }
+
+        if (!validators.isValidString(req.body.name)) {
+          fs.unlinkSync(req.file.path);
+          return res.reply(messages.invalid("Collection Name"));
+        }
+        if (req.body.sDescription.trim().length > 1000) {
+          fs.unlinkSync(req.file.path);
+          return res.reply(messages.invalid("Description"));
+        }
+
+        const oOptions = {
+          pinataMetadata: {
+            name: req.file.originalname,
+          },
+          pinataOptions: {
+            cidVersion: 0,
+          },
+        };
+
+        try {
+          const pathString = "/tmp/";
+          const file = fs.createWriteStream(pathString + req.file.originalname);
+          const request = http.get(`${req.file.location}`, function (response) {
+            var stream = response.pipe(file);
+            const readableStreamForFile = fs.createReadStream(
+              pathString + req.file.originalname
+            );
+            stream.on("finish", async function () {
+              pinata
+                .pinFileToIPFS(readableStreamForFile, oOptions)
+                .then(async (file2) => {
+                  const collection = new Collection({
+                    hash: file2.IpfsHash,
+                    name: req.body.name,
+                    description: req.body.sDescription,
+                    type: req.body.erc721,
+                    contractAddress: req.body.sContractAddress,
+                    oCreatedBy: req.userId,
+                    nextId: 0,
+                    logoImage: req.file.location,
+                    coverImage: req.file.location,
+                    categoryID: req.body.categoryID,
+                    brandID: req.body.brandID,
+                  });
+                  collection
+                    .save()
+                    .then((result) => {
+                      return res.reply(messages.created("Collection"), result);
+                    })
+                    .catch((error) => {
+                      return res.reply(
+                        messages.already_exists("Collection"),
+                        error
+                      );
+                    });
+                })
+                .catch((e) => {
+                  return res.reply(messages.error());
+                });
+            });
+          });
+        } catch (e) {
+          console.log("error in file upload..", e);
+        }
+      }
+    });
+  } catch (error) {
+    return res.reply(messages.server_error());
+  }
+};
+
 controllers.create = async (req, res) => {
   try {
     if (!req.userId) return res.reply(messages.unauthorized());
@@ -508,116 +601,7 @@ controllers.mynftlist = async (req, res) => {
   }
 };
 
-controllers.createCollection = async (req, res) => {
-  try {
-    if (!req.userId) return res.reply(messages.unauthorized());
 
-    allowedMimes = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
-    errAllowed = "JPG, JPEG, PNG,GIF";
-
-    upload(req, res, function (error) {
-      if (error) {
-        fs.unlinkSync(req.file.path);
-        return res.reply(messages.bad_request(error.message));
-      } else {
-        if (!req.body.sName) {
-          fs.unlinkSync(req.file.path);
-
-          return res.reply(messages.not_found("Collection Name"));
-        }
-        if (!req.file) {
-          fs.unlinkSync(req.file.path);
-          return res.reply(messages.not_found("File"));
-        }
-
-        if (!req.body.sRoyaltyPercentage) {
-          fs.unlinkSync(req.file.path);
-          return res.reply(messages.not_found("Royalty Percentages"));
-        }
-
-        if (isNaN(req.body.sRoyaltyPercentage)) {
-          log.red("NaN");
-          fs.unlinkSync(req.file.path);
-          return res.reply(messages.invalid("Royalty Percentages"));
-        }
-        if (req.body.sRoyaltyPercentage < 0) {
-          log.red("Greater Than 0");
-          fs.unlinkSync(req.file.path);
-          return res.reply(messages.invalid("Royalty Percentages"));
-        }
-        if (!(req.body.sRoyaltyPercentage <= 10000)) {
-          log.red("Less Than 100");
-          fs.unlinkSync(req.file.path);
-          return res.reply(messages.invalid("Royalty Percentages"));
-        }
-
-        if (!validators.isValidString(req.body.sName)) {
-          fs.unlinkSync(req.file.path);
-          return res.reply(messages.invalid("Collection Name"));
-        }
-        if (req.body.sDescription.trim().length > 1000) {
-          fs.unlinkSync(req.file.path);
-          return res.reply(messages.invalid("Description"));
-        }
-
-        const oOptions = {
-          pinataMetadata: {
-            name: req.file.originalname,
-          },
-          pinataOptions: {
-            cidVersion: 0,
-          },
-        };
-
-        try {
-          const pathString = "/tmp/";
-          const file = fs.createWriteStream(pathString + req.file.originalname);
-          const request = http.get(`${req.file.location}`, function (response) {
-            var stream = response.pipe(file);
-            const readableStreamForFile = fs.createReadStream(
-              pathString + req.file.originalname
-            );
-            stream.on("finish", async function () {
-              pinata
-                .pinFileToIPFS(readableStreamForFile, oOptions)
-                .then(async (file2) => {
-                  const collection = new Collection({
-                    sHash: file2.IpfsHash,
-                    sName: req.body.sName,
-                    sDescription: req.body.sDescription,
-                    erc721: req.body.erc721,
-                    sContractAddress: req.body.sContractAddress,
-                    sRoyaltyPercentage: req.body.sRoyaltyPercentage,
-                    oCreatedBy: req.userId,
-                    nextId: 0,
-                    collectionImage: req.file.location,
-                  });
-                  collection
-                    .save()
-                    .then((result) => {
-                      return res.reply(messages.created("Collection"), result);
-                    })
-                    .catch((error) => {
-                      return res.reply(
-                        messages.already_exists("Collection"),
-                        error
-                      );
-                    });
-                })
-                .catch((e) => {
-                  return res.reply(messages.error());
-                });
-            });
-          });
-        } catch (e) {
-          console.log("error in file upload..", e);
-        }
-      }
-    });
-  } catch (error) {
-    return res.reply(messages.server_error());
-  }
-};
 
 controllers.getcollections = async (req, res) => {
   try {
@@ -1310,8 +1294,8 @@ controllers.landing = async (req, res) => {
                         $eq: [
                           "$$user_likes",
                           req.userId &&
-                          req.userId != undefined &&
-                          req.userId != null
+                            req.userId != undefined &&
+                            req.userId != null
                             ? mongoose.Types.ObjectId(req.userId)
                             : "",
                         ],
@@ -1434,8 +1418,8 @@ controllers.landing = async (req, res) => {
                         $eq: [
                           "$$user_likes",
                           req.userId &&
-                          req.userId != undefined &&
-                          req.userId != null
+                            req.userId != undefined &&
+                            req.userId != null
                             ? mongoose.Types.ObjectId(req.userId)
                             : "",
                         ],
@@ -1558,8 +1542,8 @@ controllers.landing = async (req, res) => {
                         $eq: [
                           "$$user_likes",
                           req.userId &&
-                          req.userId != undefined &&
-                          req.userId != null
+                            req.userId != undefined &&
+                            req.userId != null
                             ? mongoose.Types.ObjectId(req.userId)
                             : "",
                         ],
@@ -2004,7 +1988,7 @@ controllers.updateNftOrder = async (req, res) => {
       nftownerID,
       { $inc: { nQuantityLeft: -req.body.putOnSaleQty } },
       { new: true },
-      function (err, response) {}
+      function (err, response) { }
     );
     if (req.body.erc721) {
       await NFT.findByIdAndUpdate(sId, {
@@ -2042,8 +2026,8 @@ controllers.likeNFT = async (req, res) => {
           let likeARY =
             NFTData.nUser_likes && NFTData.nUser_likes.length
               ? NFTData.nUser_likes.filter(
-                  (v) => v.toString() == req.userId.toString()
-                )
+                (v) => v.toString() == req.userId.toString()
+              )
               : [];
 
           console.log("like Array", likeARY);
@@ -2799,10 +2783,10 @@ controllers.transferNfts = async (req, res) => {
         (o) => o.address === req.body.receiver.toLowerCase()
       ).quantity
         ? parseInt(
-            _NFTB.nOwnedBy.find(
-              (o) => o.address === req.body.receiver.toLowerCase()
-            ).quantity
-          )
+          _NFTB.nOwnedBy.find(
+            (o) => o.address === req.body.receiver.toLowerCase()
+          ).quantity
+        )
         : 0;
       boughtQty = req.body.qty;
       let ownedQty = currentQty + boughtQty;
@@ -3170,93 +3154,4 @@ controllers.updateCollectionToken = async (req, res) => {
     return res.reply(messages.server_error());
   }
 };
-
-// controllers.getSearchedCollection = async (req, res) => {
-//   try {
-//     let data = [];
-//     let setConditions = req.body.conditions;
-
-//     //sortKey is the column
-//     const sortKey = req.body.sortKey ? req.body.sortKey : "";
-
-//     //sortType will let you choose from ASC 1 or DESC -1
-//     const sortType = req.body.sortType ? req.body.sortType : -1;
-
-//     var sortObject = {};
-//     var stype = sortKey;
-//     var sdir = sortType;
-//     sortObject[stype] = sdir;
-
-//     const page = parseInt(req.body.page);
-//     const limit = parseInt(req.body.limit);
-
-//     const startIndex = (page - 1) * limit;
-//     const endIndex = page * limit;
-
-//     const results = {};
-
-//     if (
-//       endIndex <
-//       (await Collection.countDocuments({
-//         sName: { $regex: req.body.sTextsearch, $options: "i" },,
-//       }).exec())
-//     ) {
-//       results.next = {
-//         page: page + 1,
-//         limit: limit,
-//       };
-//     }
-
-//     if (startIndex > 0) {
-//       results.previous = {
-//         page: page - 1,
-//         limit: limit,
-//       };
-//     }
-
-//     await Collection.find({
-//       sName: { $regex: req.body.sTextsearch, $options: "i" },
-//     })
-//       .select({
-//         nTitle: 1,
-//         nCollection: 1,
-//         nHash: 1,
-//         nType: 1,
-//         nUser_likes: 1,
-//         nNftImage: 1,
-//       })
-
-//       .populate({
-//         path: "nCreater",
-//         options: {
-//           limit: 1,
-//         },
-//         select: {
-//           _id: 0,
-//         },
-//       })
-//       .limit(limit)
-//       .skip(startIndex)
-//       .exec()
-//       .then((res) => {
-//         data.push(res);
-//         results.count = res.length;
-//       })
-//       .catch((e) => {
-//         console.log("Error", e);
-//       });
-
-//     results.count = await NFT.countDocuments({
-//       nTitle: { $regex: req.body.sTextsearch, $options: "i" },
-//       _id: { $in: OrderIdsss.map(String) },
-//     }).exec();
-//     results.results = data;
-
-//     return res.reply(messages.success("NFTs List"), results);
-//   } catch (error) {
-//     console.log("Error:", error);
-//     return res.reply(messages.error());
-//   }
-// };
-
 module.exports = controllers;
