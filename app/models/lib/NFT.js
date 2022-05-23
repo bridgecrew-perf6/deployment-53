@@ -8,7 +8,7 @@ const nftSchema = mongoose.Schema({
   type: {
     type: Number,
     require: true,
-    enum: [1, 2],
+    enum: [0, 1],
   },
   image: { type: String, require: true },
   price: { type: String, require: true },
@@ -65,6 +65,17 @@ const nftSchema = mongoose.Schema({
     default: 0,
     enum: [0, 1, 2],
   },
+  categoryID: {
+    type: mongoose.Schema.ObjectId,
+    ref: "Category",
+  },
+  brandID: {
+    type: mongoose.Schema.ObjectId,
+    ref: "Brand",
+  },
+  user_likes: [{
+    type: mongoose.Schema.ObjectId
+  }],
   createdBy: {
     type: mongoose.Schema.ObjectId,
     ref: "User",

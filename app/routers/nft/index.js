@@ -4,8 +4,12 @@ const nftMiddleware = require("./lib/middleware");
 
 
 router.post("/createCollection", nftMiddleware.verifyToken, nftController.createCollection );
+router.post("/getCollections", nftController.getCollections);
 
-router.post("/create", nftMiddleware.verifyToken, nftController.create);
+router.post("/createNFT", nftMiddleware.verifyToken, nftController.createNFT);
+router.post("/viewNFTs", nftController.viewNFTs);
+router.post("/likeNFT", nftMiddleware.verifyToken, nftController.likeNFT);
+
 router.put(
   "/updateNftOrder",
   nftMiddleware.verifyToken,
@@ -24,16 +28,16 @@ router.post(
 );
 
 
-router.post(
-  "/collectionList",
-  // nftMiddleware.verifyToken,
-  nftController.collectionlist
-);
-router.get(
-  "/getcollections",
-  nftMiddleware.proceedWithoutToken,
-  nftController.getcollections
-);
+// router.post(
+//   "/collectionList",
+//   // nftMiddleware.verifyToken,
+//   nftController.collectionlist
+// );
+// router.get(
+//   "/getcollections",
+//   nftMiddleware.proceedWithoutToken,
+//   nftController.getcollections
+// );
 router.post(
   "/nftListing",
   nftMiddleware.verifyWithoutToken,
@@ -102,7 +106,7 @@ router.post(
   nftMiddleware.verifyToken,
   nftController.collectionlistMy
 );
-router.post("/like", nftMiddleware.verifyToken, nftController.likeNFT);
+// router.post("/like", nftMiddleware.verifyToken, nftController.likeNFT);
 router.post(
   "/uploadImage",
   nftMiddleware.verifyToken,
