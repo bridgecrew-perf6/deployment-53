@@ -49,7 +49,6 @@ controllers.register = (req, res) => {
           });
         })
         .catch((error) => {
-
           return res.reply(messages.already_exists("User"));
         });
     });
