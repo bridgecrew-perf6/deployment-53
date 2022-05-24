@@ -87,7 +87,7 @@ controllers.register = (req, res) => {
         walletAddress: _.toChecksumAddress(req.body.walletAddress)
 
       });
-      console.log("Wallet "+req.body.walletAddress)
+      console.log("Wallet " + req.body.walletAddress)
       user
         .save()
         .then((result) => {
@@ -175,12 +175,12 @@ controllers.adminregister = async (req, res) => {
       if (err) return res.reply(messages.error());
       if (!req.body.walletAddress)
         return res.reply(messages.required_field("Wallet Address"));
-      
+
       const user = new User({
         walletAddress: _.toChecksumAddress(req.body.walletAddress),
         role: req.body.role
       });
-      console.log("Wallet "+req.body.walletAddress)
+      console.log("Wallet " + req.body.walletAddress)
       user
         .save()
         .then((result) => {
@@ -197,6 +197,42 @@ controllers.adminregister = async (req, res) => {
           return res.reply(messages.already_exists("User"));
         });
     });
+  } catch (error) {
+    return res.reply(messages.server_error());
+  }
+};
+
+controllers.adminlogin = (req, res) => {
+  try {
+    if (!req.body.walletAddress)
+      return res.reply(messages.required_field("Wallet Address"));
+
+    User.findOne(
+      {
+        walletAddress: _.toChecksumAddress(req.body.walletAddress),
+      },
+      (err, user) => {
+        if (err) return res.reply(messages.error());
+        if (!user) return res.reply(messages.not_found("User"));
+
+        if (user && user.role == "admin") {
+          var token = signJWT(user);
+
+          req.session["_id"] = user._id;
+          req.session["walletAddress"] = user.walletAddress;
+          req.session["username"] = user.username;
+          return res.reply(messages.successfully("User Login"), {
+            auth: true,
+            token,
+            walletAddress: user.walletAddress,
+            userId: user._id,
+            user: true,
+          });
+        } else {
+          return res.reply(messages.invalid("Login"));
+        }
+      }
+    );
   } catch (error) {
     return res.reply(messages.server_error());
   }
@@ -276,6 +312,41 @@ controllers.adminregister = async (req, res) => {
 };
 */
 
+controllers.changePassword = async (req, res, next) => {
+  try {
+    if (!req.userId) return res.reply(messages.unauthorized());
+    if (!req.body.password) return res.reply(messages.required_field("Password"));
+
+    const loggedInUser = req.userId;
+    const salt = await bcrypt.genSalt(10);
+    let encryptPassword = await bcrypt.hash(req.body.password, salt);
+
+    User.findOne({ _id: mongoose.Types.ObjectId(loggedInUser) },
+      (err, user) => {
+        if (err) return res.reply(messages.error());
+        if (!user) return res.reply(messages.not_found("User"));
+        if (user.role !== "user") {
+          User.findOneAndUpdate({ _id: mongoose.Types.ObjectId(loggedInUser) },
+            {
+              $set: {
+                password: encryptPassword,
+              },
+            },
+            {
+              upsert: true,
+            }
+          ).then((doc) => { return res.reply(messages.updated("Password")); })
+            .catch((err) => { return res.reply(messages.server_error()); });
+        } else{
+          return res.reply(messages.unauthorized());
+        }
+
+      });
+  } catch (error) {
+    return res.reply(messages.server_error());
+  }
+};
+
 
 
 controllers.checkuseraddress = (req, res) => {
@@ -284,7 +355,7 @@ controllers.checkuseraddress = (req, res) => {
       return res.reply(messages.required_field("Wallet Address"));
     if (!validators.isValidWalletAddress(req.body.walletAddress))
       return res.reply(messages.invalid("Wallet Address"));
-    
+
     User.findOne(
       {
         walletAddress: _.toChecksumAddress(req.body.walletAddress),
@@ -305,7 +376,7 @@ controllers.checkuseraddress = (req, res) => {
     return res.reply(error);
   }
 };
-
+/*
 controllers.adminlogin = (req, res) => {
   try {
     log.green(req.body);
@@ -343,7 +414,7 @@ controllers.adminlogin = (req, res) => {
   } catch (error) {
     return res.reply(messages.server_error());
   }
-};
+};*/
 
 controllers.passwordReset = (req, res, next) => {
   try {
@@ -379,8 +450,8 @@ controllers.passwordReset = (req, res, next) => {
             upsert: true,
           }
         )
-          .then((doc) => {})
-          .catch((err) => {});
+          .then((doc) => { })
+          .catch((err) => { });
         nodemailer.send(
           "forgot_password_mail.html",
           {

@@ -2,6 +2,12 @@ const router = require("express").Router();
 const userController = require("./lib/controllers");
 const userMiddleware = require("./lib/middleware");
 
+
+router.post("/getUsers", userMiddleware.verifyToken, userController.getUsers);
+router.post("/getAllUsers",  userController.getAllUsers);
+router.get("/getIndividualUser/:userID", userMiddleware.verifyToken, userController.getIndividualUser);
+router.post("/blockUser", userMiddleware.verifyToken, userController.blockUser);
+
 router.get("/profile", userMiddleware.verifyToken, userController.profile);
 
 router.post("/addCollaborator", userMiddleware.verifyToken, userController.addCollaborator);
@@ -21,8 +27,8 @@ router.post( "/allDetails", userMiddleware.verifyWithoutToken, userController.ge
 
 router.put("/updateProfile", userMiddleware.verifyToken, userController.updateProfile);
 router.post("/getAllUsers", userMiddleware.verifyToken, userController.getAllUsers);
-router.get("/GetIndividualUser/:userID", userMiddleware.verifyToken, userController.getIndividualUser);
-router.post("/BlockUser", userMiddleware.verifyToken, userController.blockUser);
+
+
 router.post("/follow", userMiddleware.verifyToken, userController.followUser);
 
 module.exports = router;

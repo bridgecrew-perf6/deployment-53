@@ -7,10 +7,11 @@ router.post('/login', authController.login);
 router.post('/checkuseraddress', authController.checkuseraddress);
 
 router.post('/logout', authMiddleware.verifyToken, authController.logout);
+router.post('/changePassword', authMiddleware.verifyToken, authController.changePassword);
+
 
 router.post('/adminlogin', authController.adminlogin);
 router.post('/passwordreset', authController.passwordReset);
-// This token is different from JWT
 router.get('/reset/:token', authController.passwordResetGet);
 router.post('/reset/:token', authController.passwordResetPost);
 
