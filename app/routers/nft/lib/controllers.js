@@ -217,6 +217,163 @@ controllers.getCollections = async (req, res) => {
   }
 };
 
+controllers.myCollections = async (req, res) => {
+  try {
+    if (!req.userId) return res.reply(messages.unauthorized());
+    let data = [];
+    const page = parseInt(req.body.page);
+    const limit = parseInt(req.body.limit);
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+
+    let searchArray = [];
+    searchArray["createdBy"] = mongoose.Types.ObjectId(req.userId);
+    let searchObj = Object.assign({}, searchArray);
+
+    const results = {};
+    if (endIndex < (await Collection.countDocuments(searchObj).exec())) {
+      results.next = {
+        page: page + 1,
+        limit: limit,
+      };
+    }
+    if (startIndex > 0) {
+      results.previous = {
+        page: page - 1,
+        limit: limit,
+      };
+    }
+
+    await Collection.find(searchObj)
+      .sort({ createdOn: -1 })
+      .select({
+        name: 1,
+        type: 1,
+        logoImage: 1,
+        coverImage: 1,
+        description: 1,
+        categoryID: 1,
+        brandID: 1,
+        contractAddress: 1,
+        chainID: 1,
+        salesCount: 1,
+        nftCount: 1,
+        volumeTraded: 1,
+        preSaleStartTime: 1,
+        totalSupply: 1,
+        createdBy: 1,
+        createdOn: 1,
+        lastUpdatedBy: 1,
+        lastUpdatedOn: 1,
+      })
+      .limit(limit)
+      .skip(startIndex)
+      .lean()
+      .exec()
+      .then((res) => {
+        data.push(res);
+      })
+      .catch((e) => {
+        console.log("Error", e);
+      });
+    results.count = await Collection.countDocuments(searchObj).exec();
+    results.results = data;
+    res.header("Access-Control-Max-Age", 600);
+    return res.reply(messages.success("Collection List"), results);
+  } catch (error) {
+    console.log("Error " + error)
+    return res.reply(messages.server_error());
+  }
+};
+
+controllers.viewCollection = async (req, res) => {
+  try {
+    if (!req.params.collectionID) return res.reply(messages.not_found("Collection ID"));
+    if (!validators.isValidObjectID(req.params.collectionID))
+      res.reply(messages.invalid("Collection ID"));
+    
+    let collectionData = await Collection.findById(req.params.collectionID).populate({
+      path: "createdBy",
+      options: {
+        limit: 1,
+      },
+      select: {
+        name: 1,
+        type: 1,
+        logoImage: 1,
+        coverImage: 1,
+        description: 1,
+        categoryID: 1,
+        brandID: 1,
+        contractAddress: 1,
+        chainID: 1,
+        salesCount: 1,
+        nftCount: 1,
+        volumeTraded: 1,
+        preSaleStartTime: 1,
+        totalSupply: 1,
+        createdBy: 1,
+        createdOn: 1,
+        lastUpdatedBy: 1,
+        lastUpdatedOn: 1,
+      },
+    });
+
+    if (!collectionData) return res.reply(messages.not_found("Collection"));
+    collectionData = collectionData.toObject();
+
+    var token = req.headers.authorization;
+
+    req.userId =
+      req.userId && req.userId != undefined && req.userId != null
+        ? req.userId
+        : "";
+
+    let likeARY =
+      aNFT.user_likes && aNFT.user_likes.length
+        ? aNFT.user_likes.filter((v) => v.toString() == req.userId.toString())
+        : [];
+
+    // if (likeARY && likeARY.length) {
+    //   aNFT.is_user_like = "true";
+    // } else {
+    //   aNFT.is_user_like = "false";
+    // }
+
+    //
+    if (token) {
+      token = token.replace("Bearer ", "");
+      jwt.verify(token, process.env.JWT_SECRET, function (err, decoded) {
+        if (decoded) req.userId = decoded.id;
+      });
+
+      if (aNFT.oCurrentOwner._id != req.userId)
+        await NFT.findByIdAndUpdate(req.params.nNFTId, {
+          $inc: {
+            nView: 1,
+          },
+        });
+    }
+    aNFT.loggedinUserId = req.userId;
+    console.log("---------------------------8");
+
+    if (!aNFT) {
+      console.log("---------------------------9");
+
+      return res.reply(messages.not_found("NFT"));
+    }
+    console.log("---------------------------10");
+
+    return res.reply(messages.success(), aNFT);
+  } catch (error) {
+    return res.reply(messages.server_error());
+  }
+};
+
+
+
+
+
 controllers.createNFT = async (req, res) => {
   try {
     if (!req.userId) return res.reply(messages.unauthorized());

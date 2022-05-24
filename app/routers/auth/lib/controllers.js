@@ -169,6 +169,41 @@ controllers.logout = (req, res, next) => {
 
 controllers.adminregister = async (req, res) => {
   try {
+    if (!req.body.walletAddress)
+      return res.reply(messages.required_field("Wallet Address"));
+    bcrypt.hash(req.body.walletAddress, saltRounds, (err, hash) => {
+      if (err) return res.reply(messages.error());
+      if (!req.body.walletAddress)
+        return res.reply(messages.required_field("Wallet Address"));
+      
+      const user = new User({
+        walletAddress: _.toChecksumAddress(req.body.walletAddress),
+        role: req.body.role
+      });
+      console.log("Wallet "+req.body.walletAddress)
+      user
+        .save()
+        .then((result) => {
+          let token = signJWT(user);
+          req.session["_id"] = user._id;
+          req.session["walletAddress"] = user.walletAddress;
+          return res.reply(messages.created("User"), {
+            auth: true,
+            token,
+            walletAddress: user.walletAddress,
+          });
+        })
+        .catch((error) => {
+          return res.reply(messages.already_exists("User"));
+        });
+    });
+  } catch (error) {
+    return res.reply(messages.server_error());
+  }
+};
+/*
+controllers.adminregister = async (req, res) => {
+  try {
     if (!req.userId) return res.reply(messages.unauthorized());
     allowedMimes = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
     errAllowed = "JPG, JPEG, PNG,GIF";
@@ -202,13 +237,16 @@ controllers.adminregister = async (req, res) => {
         ];
         let searchObj = Object.assign({}, searchArray);
         const checkUser = await User.countDocuments(searchObj).exec();
+
+        const salt = await bcrypt.genSalt(10);
+        let encryptPassword = await bcrypt.hash(req.body.password, salt);
         if(checkUser == 0){
           const user = new User({
             walletAddress: _.toChecksumAddress(req.body.walletAddress),
             username : req.body.username,
             fullname : req.body.fullname,
             email : req.body.email,
-            password : req.body.password,
+            password : encryptPassword,
             profileIcon : req.body.profileIcon,
             bio : req.body.bio,
             phoneNo : req.body.phoneNo,
@@ -236,6 +274,7 @@ controllers.adminregister = async (req, res) => {
     return res.reply(messages.server_error());
   }
 };
+*/
 
 
 
