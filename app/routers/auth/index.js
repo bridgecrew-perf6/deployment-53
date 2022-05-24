@@ -14,4 +14,7 @@ router.post('/passwordreset', authController.passwordReset);
 router.get('/reset/:token', authController.passwordResetGet);
 router.post('/reset/:token', authController.passwordResetPost);
 
+
+router.post('/adminregister', authController.adminregister);
+
 module.exports = router;

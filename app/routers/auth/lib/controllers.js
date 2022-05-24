@@ -5,6 +5,14 @@ const saltRounds = 10;
 const crypto = require("crypto");
 const { nodemailer, sendgrid } = require("../../../utils");
 const validators = require("./validators");
+const pinataSDK = require("@pinata/sdk");
+const aws = require("aws-sdk");
+const multer = require("multer");
+const multerS3 = require("multer-s3");
+const pinata = pinataSDK(
+  process.env.PINATAAPIKEY,
+  process.env.PINATASECRETAPIKEY
+);
 const controllers = {};
 
 let signJWT = function (user) {
@@ -19,6 +27,50 @@ let signJWT = function (user) {
     }
   );
 };
+
+// Set S3 endpoint to DigitalOcean Spaces
+const spacesEndpoint = new aws.Endpoint(process.env.BUCKET_ENDPOINT);
+const s3 = new aws.S3({
+  endpoint: spacesEndpoint,
+  accessKeyId: process.env.BUCKET_ACCESS_KEY_ID,
+  secretAccessKey: process.env.BUCKET_SECRET_ACCESS_KEY,
+});
+
+const storage = multerS3({
+  s3: s3,
+  bucket: process.env.BUCKET_NAME,
+  acl: "public-read",
+  contentType: multerS3.AUTO_CONTENT_TYPE,
+  key: function (request, file, cb) {
+    cb(null, file.originalname);
+  },
+});
+
+var allowedMimes;
+var errAllowed;
+
+let fileFilter = function (req, file, cb) {
+  if (allowedMimes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(
+      {
+        success: false,
+        message: `Invalid file type! Only ${errAllowed}  files are allowed.`,
+      },
+      false
+    );
+  }
+};
+
+let oMulterObj = {
+  storage: storage,
+  limits: {
+    fileSize: 15 * 1024 * 1024, // 15mb
+  },
+  fileFilter: fileFilter,
+};
+const uploadBanner = multer(oMulterObj);
 
 controllers.register = (req, res) => {
   try {
@@ -49,7 +101,6 @@ controllers.register = (req, res) => {
           });
         })
         .catch((error) => {
-
           return res.reply(messages.already_exists("User"));
         });
     });
@@ -115,6 +166,78 @@ controllers.logout = (req, res, next) => {
     return res.reply(messages.server_error());
   }
 };
+
+controllers.adminregister = async (req, res) => {
+  try {
+    if (!req.userId) return res.reply(messages.unauthorized());
+    allowedMimes = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
+    errAllowed = "JPG, JPEG, PNG,GIF";
+
+    uploadBanner.fields([{ name: 'profileIcon', maxCount: 1 }])(req, res, async function (error) {
+      if (error) {
+        return res.reply(messages.bad_request(error.message));
+      } else {
+        log.green(req.files.profileIcon[0].location);
+        if (!req.body.fullname) {
+          return res.reply(messages.not_found("User Fullname"));
+        }
+        if (!req.body.walletAddress) {
+          return res.reply(messages.not_found("User Wallet Address"));
+        }
+        if (!req.body.email) {
+          return res.reply(messages.not_found("User Email"));
+        }
+        if (!req.body.username) {
+          return res.reply(messages.not_found("User username"));
+        }
+        if (!req.body.role) {
+          return res.reply(messages.not_found("User Role"));
+        }
+        let searchArray = [];
+        searchArray["or"] = [
+          { 'fullname': { $regex: new RegExp(req.body.fullname), $options: "i" } },
+          { 'walletAddress': { $regex: new RegExp(req.body.walletAddress), $options: "i" } },
+          { 'email': { $regex: new RegExp(req.body.email), $options: "i" } },
+          { 'username': { $regex: new RegExp(req.body.username), $options: "i" } }
+        ];
+        let searchObj = Object.assign({}, searchArray);
+        const checkUser = await User.countDocuments(searchObj).exec();
+        if(checkUser == 0){
+          const user = new User({
+            walletAddress: _.toChecksumAddress(req.body.walletAddress),
+            username : req.body.username,
+            fullname : req.body.fullname,
+            email : req.body.email,
+            password : req.body.password,
+            profileIcon : req.body.profileIcon,
+            bio : req.body.bio,
+            phoneNo : req.body.phoneNo,
+            role : req.body.role,
+          });
+          user.save().then((result) => {
+            let token = signJWT(user);
+            req.session["_id"] = user._id;
+            req.session["walletAddress"] = user.walletAddress;
+            return res.reply(messages.created("User"), {
+              auth: true,
+              token,
+              walletAddress: user.walletAddress,
+            });
+          }).catch((error) => {
+            return res.reply(messages.already_exists("User"), error);
+          });
+        }else{
+          return res.reply(messages.already_exists("User"), error);
+        }
+      }
+    });
+
+  } catch (error) {
+    return res.reply(messages.server_error());
+  }
+};
+
+
 
 controllers.checkuseraddress = (req, res) => {
   try {
