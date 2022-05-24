@@ -74,6 +74,8 @@ controllers.profile = (req, res) => {
     // if (!req.userId) {
     //     return res.reply(messages.unauthorized());
     // }
+    console.log("user profile api is hit");
+    console.log("user id is---->",req.userId)
     User.findOne(
       {
         _id: req.userId,
@@ -83,7 +85,7 @@ controllers.profile = (req, res) => {
         username: 1,
         sCreated: 1,
         email: 1,
-        swalletAddress: 1,
+        walletAddress: 1,
         profileIcon: 1,
         Website: 1,
         bio: 1,
@@ -134,7 +136,7 @@ controllers.updateProfile = async (req, res, next) => {
               );
             }
           profileDetails = {
-            username: req.body.username,
+            username: req.body.userName,
             fullname : req.body.fullname,
             bio: req.body.bio,
             email: req.body.email,
