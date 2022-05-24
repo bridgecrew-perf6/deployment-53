@@ -15,20 +15,12 @@ const pinata = pinataSDK(
   process.env.PINATAAPIKEY,
   process.env.PINATASECRETAPIKEY
 );
-const {
-  User,
-  Category,
-  Aboutus,
-  Terms,
-  FAQs,
-  NFT,
-} = require("../../../models");
+const { User, Category, NFT, } = require("../../../models");
 const _ = require("../../../../globals/lib/helper");
 
 const validators = require("./validators");
 const controllers = {};
 
-// Set S3 endpoint to DigitalOcean Spaces
 const spacesEndpoint = new aws.Endpoint(process.env.BUCKET_ENDPOINT);
 const s3 = new aws.S3({
   endpoint: spacesEndpoint,
@@ -69,13 +61,280 @@ let oMulterObj = {
   fileFilter: fileFilter,
 };
 
+
+controllers.getUsers = async (req, res) => {
+  try {
+    if (!req.userId) return res.reply(messages.unauthorized());
+    let data = [];
+    let searchText = req.body.searchText;
+    const page = parseInt(req.body.page);
+    const limit = parseInt(req.body.limit);
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    let UserSearchArray = [];
+
+    User.findById(req.userId, async (err, userData) => {
+      if (err) return res.reply(messages.server_error());
+      if (!userData) return res.reply(messages.not_found("User"));
+      if (userData.role == "admin") {
+        
+        UserSearchArray["role"] = "user";
+        if (searchText !== "") {
+          UserSearchArray["or"] = [
+            { 'email': { $regex: new RegExp(searchText), $options: "i" } },
+            { 'username': { $regex: new RegExp(searchText), $options: "i" } },
+            { 'fullname': { $regex: new RegExp(searchText), $options: "i" } },
+            { 'walletAddress': { $regex: new RegExp(searchText), $options: "i" } }
+          ];
+        }
+        let UserSearchObj = Object.assign({}, UserSearchArray);
+        const results = {};
+        if (endIndex < (await User.countDocuments(UserSearchObj).exec())) {
+          results.next = {
+            page: page + 1,
+            limit: limit,
+          };
+        }
+        if (startIndex > 0) {
+          results.previous = {
+            page: page - 1,
+            limit: limit,
+          };
+        }
+        await User.find(UserSearchObj)
+          .sort({ createdOn: -1 })
+          .select({
+            walletAddress: 1,
+            username: 1,
+            fullname: 1,
+            email: 1,
+            profileIcon: 1,
+            phoneNo: 1,
+            role: 1,
+            status: 1,
+            bio: 1,
+            user_followings: 1,
+            user_followers_size: 1,
+            createdBy: 1,
+            createdOn: 1,
+            lastUpdatedBy: 1,
+            lastUpdatedOn: 1
+          })
+          .limit(limit)
+          .skip(startIndex)
+          .lean()
+          .exec()
+          .then((res) => {
+            data.push(res);
+          })
+          .catch((e) => {
+            console.log("Error", e);
+          });
+
+        results.count = await User.countDocuments(UserSearchObj).exec();
+        results.results = data;
+        res.header("Access-Control-Max-Age", 600);
+        return res.reply(messages.success("User List"), results);
+
+      } else if (userData.role == "superadmin") {
+
+        UserSearchArray["_id"] = mongoose.Types.ObjectId(req.userId);;
+        if (searchText !== "") {
+          UserSearchArray["or"] = [
+            { 'email': { $regex: new RegExp(searchText), $options: "i" } },
+            { 'username': { $regex: new RegExp(searchText), $options: "i" } },
+            { 'fullname': { $regex: new RegExp(searchText), $options: "i" } },
+            { 'walletAddress': { $regex: new RegExp(searchText), $options: "i" } }
+          ];
+        }
+        let UserSearchObj = Object.assign({}, UserSearchArray);
+        const results = {};
+        if (endIndex < (await User.countDocuments(UserSearchObj).exec())) {
+          results.next = {
+            page: page + 1,
+            limit: limit,
+          };
+        }
+        if (startIndex > 0) {
+          results.previous = {
+            page: page - 1,
+            limit: limit,
+          };
+        }
+        await User.find(UserSearchObj)
+          .sort({ createdOn: -1 })
+          .select({
+            walletAddress: 1,
+            username: 1,
+            fullname: 1,
+            email: 1,
+            profileIcon: 1,
+            phoneNo: 1,
+            role: 1,
+            status: 1,
+            bio: 1,
+            user_followings: 1,
+            user_followers_size: 1,
+            createdBy: 1,
+            createdOn: 1,
+            lastUpdatedBy: 1,
+            lastUpdatedOn: 1
+          })
+          .limit(limit)
+          .skip(startIndex)
+          .lean()
+          .exec()
+          .then((res) => {
+            data.push(res);
+          })
+          .catch((e) => {
+            console.log("Error", e);
+          });
+
+        results.count = await User.countDocuments(UserSearchObj).exec();
+        results.results = data;
+        res.header("Access-Control-Max-Age", 600);
+        return res.reply(messages.success("User List"), results);
+
+      } else {
+        return res.reply(messages.unauthorized());
+      }
+
+    });
+  } catch (error) {
+    console.log("Error:", error);
+    return res.reply(messages.error());
+  }
+};
+
+controllers.getAllUsers = async (req, res) => {
+  try {
+    let data = [];
+    let searchText = req.body.searchText;
+    const page = parseInt(req.body.page);
+    const limit = parseInt(req.body.limit);
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+
+    let UserSearchArray = [];
+    UserSearchArray["role"] = "user";
+    if (searchText !== "") {
+      UserSearchArray["or"] = [
+        { 'email': { $regex: new RegExp(searchText), $options: "i" } },
+        { 'username': { $regex: new RegExp(searchText), $options: "i" } },
+        { 'fullname': { $regex: new RegExp(searchText), $options: "i" } },
+        { 'walletAddress': { $regex: new RegExp(searchText), $options: "i" } }
+      ];
+    }
+    let UserSearchObj = Object.assign({}, UserSearchArray);
+    const results = {};
+    if (endIndex < (await User.countDocuments(UserSearchObj).exec())) {
+      results.next = {
+        page: page + 1,
+        limit: limit,
+      };
+    }
+    if (startIndex > 0) {
+      results.previous = {
+        page: page - 1,
+        limit: limit,
+      };
+    }
+    await User.find(UserSearchObj)
+      .sort({ createdOn: -1 })
+      .select({
+        walletAddress: 1,
+        username: 1,
+        fullname: 1,
+        email: 1,
+        profileIcon: 1,
+        phoneNo: 1,
+        role: 1,
+        status: 1,
+        bio: 1,
+        user_followings: 1,
+        user_followers_size: 1,
+        createdBy: 1,
+        createdOn: 1,
+        lastUpdatedBy: 1,
+        lastUpdatedOn: 1
+      })
+      .limit(limit)
+      .skip(startIndex)
+      .lean()
+      .exec()
+      .then((res) => {
+        data.push(res);
+      })
+      .catch((e) => {
+        console.log("Error", e);
+      });
+
+    results.count = await User.countDocuments(UserSearchObj).exec();
+    results.results = data;
+    res.header("Access-Control-Max-Age", 600);
+    return res.reply(messages.success("User List"), results);
+  } catch (error) {
+    console.log("Error:", error);
+    return res.reply(messages.error());
+  }
+};
+
+controllers.getIndividualUser = async (req, res) => {
+  try {
+    if (!req.userId) return res.reply(messages.unauthorized());
+    if (!req.params.userID)
+      return res.reply(messages.not_found("User ID"));
+
+    User.findById(req.userId, (err, user) => {
+      if (err) return res.reply(messages.server_error());
+      if (!user) return res.reply(messages.not_found("User"));
+      return res.reply(messages.successfully("User Details Found"), user);
+    });
+  } catch (error) {
+    return res.reply(messages.server_error());
+  }
+};
+
+controllers.blockUser = async (req, res) => {
+  try {
+    if (!req.userId) return res.reply(messages.unauthorized());
+    if (!req.body.userID)
+      return res.reply(messages.not_found("User ID"));
+
+    User.findById(req.userId, async (err, user) => {
+      if (err) return res.reply(messages.server_error());
+      if (!user) return res.reply(messages.not_found("User"));
+      let userStatus = user.status;
+      let UpdateduserStatus = 0;
+      let StatusText = "";
+      if (userStatus === 1) {
+        StatusText = "Blocked";
+        UpdateduserStatus = 0;
+      } else {
+        StatusText = "unBlocked";
+        UpdateduserStatus = 1;
+      }
+      await User.findOneAndUpdate(
+        { _id: mongoose.Types.ObjectId(req.body.userID) },
+        { status: UpdateduserStatus }
+      ).catch((e) => {
+        console.log("Error1", e.message);
+      });
+      return res.reply(messages.successfully("User " + StatusText + " Successfully"), user);
+    });
+  } catch (error) {
+    return res.reply(messages.server_error());
+  }
+};
+
 controllers.profile = (req, res) => {
   try {
     // if (!req.userId) {
     //     return res.reply(messages.unauthorized());
     // }
     console.log("user profile api is hit");
-    console.log("user id is---->",req.userId)
+    console.log("user id is---->", req.userId)
     User.findOne(
       {
         _id: req.userId,
@@ -137,7 +396,7 @@ controllers.updateProfile = async (req, res, next) => {
             }
           profileDetails = {
             username: req.body.userName,
-            fullname : req.body.fullname,
+            fullname: req.body.fullname,
             bio: req.body.bio,
             email: req.body.email,
           };
@@ -973,128 +1232,7 @@ controllers.followUser = async (req, res) => {
   }
 };
 
-controllers.getAllUsers = async (req, res) => {
-  try {
-    let data = [];
-    let searchText = req.body.searchText;
-    let hideBlocked = parseInt(req.body.hideBlocked);
-    const page = parseInt(req.body.page);
-    const limit = parseInt(req.body.limit);
-    const startIndex = (page - 1) * limit;
-    const endIndex = page * limit;
-
-    let UserSearchArray = [];
-    if (hideBlocked === 0) {
-      UserSearchArray["Status"] = 1
-    }
-    if (searchText !== "") {
-      UserSearchArray["or"] = [
-        { 'username' : {  $regex: new RegExp(searchText), $options: "i" } },
-        { 'fullname' : {  $regex: new RegExp(searchText), $options: "i" } },
-        { 'walletAddress' : {  $regex: new RegExp(searchText), $options: "i" } }
-      ];
-    }
-    let UserSearchObj = Object.assign({}, UserSearchArray);
-    const results = {};
-    if (endIndex < (await User.countDocuments(UserSearchObj).exec())) {
-      results.next = {
-        page: page + 1,
-        limit: limit,
-      };
-    }
-    if (startIndex > 0) {
-      results.previous = {
-        page: page - 1,
-        limit: limit,
-      };
-    }
-    await User.find(UserSearchObj)
-      .sort({ nCreated: -1 })
-      .select({
-        walletAddress: 1,
-        username: 1,
-        fullname: 1,
-        email: 1,
-        profileIcon: 1,
-        phoneNo: 1,
-        role: 1,
-        Status: 1,
-        bio: 1,
-        user_followings: 1,
-        user_followers_size: 1,
-        createdBy: 1,
-        createdOn: 1,
-        lastUpdatedBy: 1,
-        lastUpdatedOn: 1
-      })
-      .limit(limit)
-      .skip(startIndex)
-      .lean()
-      .exec()
-      .then((res) => {
-        data.push(res);
-      })
-      .catch((e) => {
-        console.log("Error", e);
-      });
-
-    results.count = await User.countDocuments(UserSearchObj).exec();
-    results.results = data;
-    res.header("Access-Control-Max-Age", 600);
-    return res.reply(messages.success("User List"), results);
-  } catch (error) {
-    console.log("Error:", error);
-    return res.reply(messages.error());
-  }
-};
 
 
-controllers.getIndividualUser = async (req, res) => {
-  try {
-    if (!req.userId) return res.reply(messages.unauthorized());
-    if (!req.params.userID)
-      return res.reply(messages.not_found("User ID"));
 
-    User.findById(req.userId, (err, user) => {
-      if (err) return res.reply(messages.server_error());
-      if (!user) return res.reply(messages.not_found("User"));
-      return res.reply(messages.successfully("User Details Found"), user);
-    });
-  } catch (error) {
-    return res.reply(messages.server_error());
-  }
-};
-module.exports = controllers;
-
-controllers.blockUser = async (req, res) => {
-  try {
-    if (!req.userId) return res.reply(messages.unauthorized());
-    if (!req.body.userID)
-      return res.reply(messages.not_found("User ID"));
-
-    User.findById(req.userId, async (err, user) => {
-      if (err) return res.reply(messages.server_error());
-      if (!user) return res.reply(messages.not_found("User"));
-      let userStatus = user.status;
-      let UpdateduserStatus = 0;
-      let StatusText = "";
-      if(userStatus === 1){
-        StatusText = "Blocked";
-        UpdateduserStatus = 0;
-      }else{
-        StatusText = "unBlocked";
-        UpdateduserStatus = 1;
-      }
-      await User.findOneAndUpdate(
-        { _id: mongoose.Types.ObjectId(req.body.userID) },
-        { status: UpdateduserStatus }
-      ).catch((e) => {
-        console.log("Error1", e.message);
-      });
-      return res.reply(messages.successfully("User "+StatusText+" Successfully"), user);
-    });
-  } catch (error) {
-    return res.reply(messages.server_error());
-  }
-};
 module.exports = controllers;
