@@ -134,6 +134,8 @@ controllers.getCollections = async (req, res) => {
     const ERCType = req.body.ERCType;
     const searchText = req.body.searchText;
     const filterString = req.body.filterString;
+    const isMinted = req.body.isMinted;
+    const isHotCollection = req.body.isHotCollection;
 
     let searchArray = [];
     if (collectionID !== "") {
@@ -147,6 +149,12 @@ controllers.getCollections = async (req, res) => {
     }
     if (brandID !== "") {
       searchArray["brandID"] = mongoose.Types.ObjectId(brandID);
+    }
+    if (isMinted !== "") {
+      searchArray["isMinted"] = isMinted;
+    }
+    if (isHotCollection !== "") {
+      searchArray["isHotCollection"] = isHotCollection;
     }
     if (ERCType !== "") {
       searchArray["type"] = ERCType;
@@ -177,27 +185,9 @@ controllers.getCollections = async (req, res) => {
     }
 
     await Collection.find(searchObj)
+      .populate("categoryID")
+      .populate("brandID")
       .sort({ createdOn: -1 })
-      .select({
-        name: 1,
-        type: 1,
-        logoImage: 1,
-        coverImage: 1,
-        description: 1,
-        categoryID: 1,
-        brandID: 1,
-        contractAddress: 1,
-        chainID: 1,
-        salesCount: 1,
-        nftCount: 1,
-        volumeTraded: 1,
-        preSaleStartTime: 1,
-        totalSupply: 1,
-        createdBy: 1,
-        createdOn: 1,
-        lastUpdatedBy: 1,
-        lastUpdatedOn: 1,
-      })
       .limit(limit)
       .skip(startIndex)
       .lean()
