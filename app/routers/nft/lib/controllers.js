@@ -108,6 +108,7 @@ controllers.createCollection = async (req, res) => {
         collection.save().then((result) => {
           return res.reply(messages.created("Collection"), result);
         }).catch((error) => {
+          console.log(error);
           return res.reply(messages.already_exists("Collection"), error);
         });
       }
@@ -1405,20 +1406,20 @@ controllers.getCollectionDetails = (req, res) => {
   }
 };
 
-controllers.getCollectionDetailsByAddress = (req, res) => {
-  try {
-    Collection.findOne(
-      { sContractAddress: req.body.sContractAddress },
-      (err, collection) => {
-        if (err) return res.reply(messages.server_error());
-        if (!collection) return res.reply(messages.not_found("Collection"));
-        return res.reply(messages.no_prefix("Collection Details"), collection);
-      }
-    );
-  } catch (error) {
-    return res.reply(messages.server_error());
-  }
-};
+// controllers.getCollectionDetailsByAddress = (req, res) => {
+//   try {
+//     Collection.findOne(
+//       { sContractAddress: req.body.sContractAddress },
+//       (err, collection) => {
+//         if (err) return res.reply(messages.server_error());
+//         if (!collection) return res.reply(messages.not_found("Collection"));
+//         return res.reply(messages.no_prefix("Collection Details"), collection);
+//       }
+//     );
+//   } catch (error) {
+//     return res.reply(messages.server_error());
+//   }
+// };
 
 controllers.setTransactionHash = async (req, res) => {
   try {
@@ -3316,22 +3317,22 @@ controllers.getSearchedNft = async (req, res) => {
   }
 };
 
-controllers.updateCollectionToken = async (req, res) => {
-  try {
-    if (!req.params.collectionAddress)
-      return res.reply(messages.not_found("Contract Address Not Found"));
-    const contractAddress = req.params.collectionAddress;
+// controllers.updateCollectionToken = async (req, res) => {
+//   try {
+//     if (!req.params.collectionAddress)
+//       return res.reply(messages.not_found("Contract Address Not Found"));
+//     const contractAddress = req.params.collectionAddress;
 
-    const collection = await Collection.findOne({
-      sContractAddress: contractAddress,
-    });
-    let nextId = collection.getNextId();
+//     const collection = await Collection.findOne({
+//       sContractAddress: contractAddress,
+//     });
+//     let nextId = collection.getNextId();
 
-    collection.nextId = nextId + 1;
-    collection.save();
-    return res.reply(messages.success("Token Updated", nextId + 1));
-  } catch (error) {
-    return res.reply(messages.server_error());
-  }
-};
+//     collection.nextId = nextId + 1;
+//     collection.save();
+//     return res.reply(messages.success("Token Updated", nextId + 1));
+//   } catch (error) {
+//     return res.reply(messages.server_error());
+//   }
+// };
 module.exports = controllers;

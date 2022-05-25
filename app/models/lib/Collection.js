@@ -85,4 +85,4 @@ collectionSchema.methods.getNextID=function() {
   let nextIDDD=this.nextID+1;
   return nextIDDD;
 };
-module.exports=mongoose.model("Collection",collectionSchema);
+module.exports = mongoose.model("Collection",collectionSchema);

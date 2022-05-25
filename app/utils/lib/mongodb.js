@@ -7,6 +7,7 @@ function MongoClient() {
         useNewUrlParser: true,
         useCreateIndex: true,
         useFindAndModify: false,
+        autoIndex: true, //make this also true
     };
 }
 

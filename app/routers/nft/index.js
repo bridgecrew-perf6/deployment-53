@@ -23,11 +23,11 @@ router.post(
   nftMiddleware.verifyWithoutToken,
   nftController.getCollectionDetails
 );
-router.post(
-  "/getCollectionDetailsByAddress",
-  nftMiddleware.verifyWithoutToken,
-  nftController.getCollectionDetailsByAddress
-);
+// router.post(
+//   "/getCollectionDetailsByAddress",
+//   nftMiddleware.verifyWithoutToken,
+//   nftController.getCollectionDetailsByAddress
+// );
 
 
 // router.post(
@@ -131,9 +131,9 @@ router.post(
 );
 router.post("/getSearchedNft", nftController.getSearchedNft);
 
-router.get(
-  "/updateCollectionToken/:collectionAddress",
-  nftMiddleware.verifyToken,
-  nftController.updateCollectionToken
-);
+// router.get(
+//   "/updateCollectionToken/:collectionAddress",
+//   nftMiddleware.verifyToken,
+//   nftController.updateCollectionToken
+// );
 module.exports = router;
