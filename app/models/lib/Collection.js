@@ -39,6 +39,8 @@ const collectionSchema=mongoose.Schema({
   chainID: {
     type: String
   },
+  price: { type: mongoose.Types.Decimal128, default: 0 },
+  royalityPercentage: { type: Number, default: 0 },
   salesCount: {
     type: Number,
     default: 0
@@ -63,7 +65,11 @@ const collectionSchema=mongoose.Schema({
     require: true,
     default: 0,
   },
-
+  isHotCollection: {
+    type: Number,
+    default: 0,
+    enum: [0, 1],
+  },
   createdBy: {
     type: mongoose.Schema.ObjectId,
     ref: "User",
@@ -85,4 +91,4 @@ collectionSchema.methods.getNextID=function() {
   let nextIDDD=this.nextID+1;
   return nextIDDD;
 };
-module.exports=mongoose.model("Collection",collectionSchema);
+module.exports = mongoose.model("Collection",collectionSchema);
