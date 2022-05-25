@@ -21,7 +21,7 @@ controllers.insertHistory = async (req, res) => {
     let action = req.body.action;
     let actionMeta = req.body.actionMeta;
     let message = req.body.message;
-    let created_ts = req.body.created_ts;
+    let created_ts = req.body.createdBy;
     const insertData = new History({
       nftId: nftId,
       userId: userId,
@@ -122,24 +122,6 @@ controllers.fetchHistory = async (req, res) => {
     results.results = data;
     res.header('Access-Control-Max-Age', 600);
     return res.reply(messages.success("History Details"), results);
-    /*
-    console.log("Datat" + data[0].history.length);
-    let iFiltered = data[0].history.length;
-    if (data[0].totalCount[0] == undefined) {
-      return res.reply(messages.no_prefix("History Details"), {
-        data: [],
-        draw: req.body.draw,
-        recordsTotal: 0,
-        recordsFiltered: 0,
-      });
-    } else {
-      return res.reply(messages.no_prefix("History Details"), {
-        data: data[0].history,
-        draw: req.body.draw,
-        recordsTotal: data[0].totalCount[0].count,
-        recordsFiltered: iFiltered,
-      });
-    }*/
   } catch (error) {
     console.log(error);
     return res.reply(messages.server_error());

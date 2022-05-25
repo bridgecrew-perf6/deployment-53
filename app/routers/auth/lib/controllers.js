@@ -122,7 +122,7 @@ controllers.login = (req, res) => {
         if (err) return res.reply(messages.error());
         if (!user) return res.reply(messages.not_found("User"));
 
-        if (user && user.role == "user") {
+        if (user && user.role != "superadmin") {
           var token = signJWT(user);
 
           req.session["_id"] = user._id;
@@ -133,7 +133,8 @@ controllers.login = (req, res) => {
             token,
             walletAddress: user.walletAddress,
             userId: user._id,
-            user: true,
+            userType: user.role,
+            userData: user,
           });
         } else {
           return res.reply(messages.invalid("Login"));
@@ -202,41 +203,6 @@ controllers.adminregister = async (req, res) => {
   }
 };
 
-controllers.adminlogin = (req, res) => {
-  try {
-    if (!req.body.walletAddress)
-      return res.reply(messages.required_field("Wallet Address"));
-
-    User.findOne(
-      {
-        walletAddress: _.toChecksumAddress(req.body.walletAddress),
-      },
-      (err, user) => {
-        if (err) return res.reply(messages.error());
-        if (!user) return res.reply(messages.not_found("User"));
-
-        if (user && user.role == "admin") {
-          var token = signJWT(user);
-
-          req.session["_id"] = user._id;
-          req.session["walletAddress"] = user.walletAddress;
-          req.session["username"] = user.username;
-          return res.reply(messages.successfully("User Login"), {
-            auth: true,
-            token,
-            walletAddress: user.walletAddress,
-            userId: user._id,
-            user: true,
-          });
-        } else {
-          return res.reply(messages.invalid("Login"));
-        }
-      }
-    );
-  } catch (error) {
-    return res.reply(messages.server_error());
-  }
-};
 /*
 controllers.adminregister = async (req, res) => {
   try {

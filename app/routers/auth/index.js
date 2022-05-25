@@ -10,7 +10,6 @@ router.post('/logout', authMiddleware.verifyToken, authController.logout);
 router.post('/changePassword', authMiddleware.verifyToken, authController.changePassword);
 
 
-router.post('/adminlogin', authController.adminlogin);
 router.post('/passwordreset', authController.passwordReset);
 router.get('/reset/:token', authController.passwordResetGet);
 router.post('/reset/:token', authController.passwordResetPost);
