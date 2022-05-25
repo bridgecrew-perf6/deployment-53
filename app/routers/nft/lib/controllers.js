@@ -292,7 +292,7 @@ controllers.viewCollection = async (req, res) => {
     if (!req.params.collectionID) return res.reply(messages.not_found("Collection ID"));
     if (!validators.isValidObjectID(req.params.collectionID))
       res.reply(messages.invalid("Collection ID"));
-    
+
     let collectionData = await Collection.findById(req.params.collectionID).populate({
       path: "createdBy",
       options: {
@@ -366,6 +366,51 @@ controllers.viewCollection = async (req, res) => {
     console.log("---------------------------10");
 
     return res.reply(messages.success(), aNFT);
+  } catch (error) {
+    return res.reply(messages.server_error());
+  }
+};
+
+controllers.updateCollection = async (req, res) => {
+  try {
+    if (!req.userId) return res.reply(messages.unauthorized());
+    allowedMimes = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
+    errAllowed = "JPG, JPEG, PNG,GIF";
+
+    uploadBanner.fields([{ name: 'logoImage', maxCount: 1 }, { name: 'coverImage', maxCount: 1 }])(req, res, function (error) {
+      let updateData = [];
+      let collectionID = req.body.id;
+      if (req.files && req.files.logoImage && req.files.logoImage[0] && req.files.logoImage[0].location) {
+        updateData['logoImage'] = req.files.logoImage[0].location;
+      }
+      if (req.files && req.files.coverImage && req.files.coverImage[0] && req.files.coverImage[0].location) {
+        updateData['coverImage'] = req.files.coverImage[0].location;
+      }
+      if (req.body) {
+        if (req.body.price) {
+          updateData['price'] = req.body.price;
+        }
+        if (req.body.isHotCollection) {
+          updateData['isHotCollection'] = req.body.isHotCollection;
+        }
+        if (req.body.isMinted) {
+          updateData['isMinted'] = req.body.isMinted;
+        }
+        if (req.body.preSaleStartTime) {
+          updateData['preSaleStartTime'] = req.body.preSaleStartTime;
+        }
+        updateData['lastUpdatedBy'] = req.userId;
+        updateData['lastUpdatedOn'] = Date.now();
+      }
+      let updateObj = Object.assign({}, updateData);
+      Collection.findByIdAndUpdate(
+        { _id: mongoose.Types.ObjectId(collectionID) },
+        { $set: updateObj }
+      ).then((collection) => {
+        return res.reply(messages.updated("Collection Updated successfully."), collection );
+      });
+    });
+
   } catch (error) {
     return res.reply(messages.server_error());
   }
@@ -455,56 +500,56 @@ controllers.createNFT = async (req, res) => {
                 console.log("res---", res.IpfsHash);
                 return pinata.pinJSONToIPFS(uploadingData, mOptions);
               })
-              .then(async (file2) => {
-                const collectionID = req.body.collectionID;
-                const collectionData = await Collection.findOne({_id: mongoose.Types.ObjectId(collectionID) });
-                const brandID = collectionData.brandID;
-                const categoryID = collectionData.categoryID;
-                const nft = new NFT({
-                  name: req.body.name,
-                  collectionID: collectionID && collectionID != undefined ? collectionID : "",
-                  hash: file2.IpfsHash,
-                  ownedBy: [],
-                  totalQuantity: req.body.quantity,
-                  description: req.body.description,
-                  createdBy: req.userId,
-                  tokenID: req.body.tokenID,
-                  type: req.body.type,
-                  image: req.file.location,
-                  attributes : req.body.attributes,
-                  levels : req.body.levels,
-                  price : req.body.price,
-                  isMinted : req.body.isMinted,
-                  categoryID : categoryID,
-                  brandID : brandID,
-                });
-                nft.assetsInfo.push({
-                  size: req.body.imageSize,
-                  type: req.body.imageType,
-                  dimension: req.body.imageDimension,
-                });
-                nft.ownedBy.push({
-                  address: creatorAddress.toLowerCase(),
-                  quantity: req.body.quantity,
-                });
-                nft.save().then(async (result) => {
-                  const collection = await Collection.findOne({
-                    _id: mongoose.Types.ObjectId(collectionID),
+                .then(async (file2) => {
+                  const collectionID = req.body.collectionID;
+                  const collectionData = await Collection.findOne({ _id: mongoose.Types.ObjectId(collectionID) });
+                  const brandID = collectionData.brandID;
+                  const categoryID = collectionData.categoryID;
+                  const nft = new NFT({
+                    name: req.body.name,
+                    collectionID: collectionID && collectionID != undefined ? collectionID : "",
+                    hash: file2.IpfsHash,
+                    ownedBy: [],
+                    totalQuantity: req.body.quantity,
+                    description: req.body.description,
+                    createdBy: req.userId,
+                    tokenID: req.body.tokenID,
+                    type: req.body.type,
+                    image: req.file.location,
+                    attributes: req.body.attributes,
+                    levels: req.body.levels,
+                    price: req.body.price,
+                    isMinted: req.body.isMinted,
+                    categoryID: categoryID,
+                    brandID: brandID,
                   });
-                  let nextID = collection.getNextID();
-                  collection.nextID = nextID;
-                  collection.save();
-                  await Collection.findOneAndUpdate({ _id: mongoose.Types.ObjectId(collectionID) }, { $inc: { nftCount: 1 } }, function () { });
-                  await Brand.findOneAndUpdate({ _id: mongoose.Types.ObjectId(brandID) }, { $inc: { nftCount: 1 } }, function () { });
-                  return res.reply(messages.created("NFT"), result);
-                }).catch((error) => {
-                  console.log("Created NFT error", error);
+                  nft.assetsInfo.push({
+                    size: req.body.imageSize,
+                    type: req.body.imageType,
+                    dimension: req.body.imageDimension,
+                  });
+                  nft.ownedBy.push({
+                    address: creatorAddress.toLowerCase(),
+                    quantity: req.body.quantity,
+                  });
+                  nft.save().then(async (result) => {
+                    const collection = await Collection.findOne({
+                      _id: mongoose.Types.ObjectId(collectionID),
+                    });
+                    let nextID = collection.getNextID();
+                    collection.nextID = nextID;
+                    collection.save();
+                    await Collection.findOneAndUpdate({ _id: mongoose.Types.ObjectId(collectionID) }, { $inc: { nftCount: 1 } }, function () { });
+                    await Brand.findOneAndUpdate({ _id: mongoose.Types.ObjectId(brandID) }, { $inc: { nftCount: 1 } }, function () { });
+                    return res.reply(messages.created("NFT"), result);
+                  }).catch((error) => {
+                    console.log("Created NFT error", error);
+                    return res.reply(messages.error());
+                  });
+                }).catch((e) => {
+                  console.log("Error " + e);
                   return res.reply(messages.error());
                 });
-              }).catch((e) => {
-                console.log("Error "+ e);
-                return res.reply(messages.error());
-              });
             });
           });
         } catch (e) {
@@ -630,7 +675,7 @@ controllers.likeNFT = async (req, res) => {
           let likeMAINarray = [];
           likeMAINarray = NFTData.nUser_likes;
           let flag = "";
-          let likeARY = likeMAINarray && likeMAINarray.length ? likeMAINarray.filter( (v) => v.toString() == req.userId.toString()) : [];
+          let likeARY = likeMAINarray && likeMAINarray.length ? likeMAINarray.filter((v) => v.toString() == req.userId.toString()) : [];
           if (likeARY && likeARY.length) {
             flag = "dislike";
             var index = likeMAINarray.indexOf(likeARY[0]);
