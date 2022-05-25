@@ -20,21 +20,35 @@ const nftSchema = mongoose.Schema({
   tokenID: String,
   assetsInfo: [
     {
-      size: String,
-      type: String,
-      dimension: String,
+      size: {
+        type: String,
+      },
+      type: {
+        type: String,
+      },
+      dimension: {
+        type: String,
+      }
     },
   ],
   attributes: [
     {
-      name: String,
-      value: String
+      name: {
+        type: String,
+      },
+      value: {
+        type: String,
+      }
     },
   ],
   levels: [
     {
-      name: String,
-      value: String
+      name: {
+        type: String,
+      },
+      value: {
+        type: String,
+      }
     },
   ],
   totalQuantity: Number,
@@ -47,12 +61,6 @@ const nftSchema = mongoose.Schema({
       quantity: {
         type: Number,
       },
-    },
-  ],
-  properties: [
-    {
-      Name: String,
-      Value: String
     },
   ],
   hash: {

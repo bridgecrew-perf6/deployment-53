@@ -460,6 +460,7 @@ controllers.createNFT = async (req, res) => {
           },
         };
         try {
+          let creatorAddress = req.body.creatorAddress;
           const pathString = "/tmp/";
           const file = fs.createWriteStream(pathString + req.file.originalname);
           const request = http.get(`${req.file.location}`, function (response) {
@@ -506,10 +507,10 @@ controllers.createNFT = async (req, res) => {
                     tokenID: req.body.tokenID,
                     type: req.body.type,
                     image: req.file.location,
-                    attributes: req.body.attributes,
-                    levels: req.body.levels,
                     price: req.body.price,
                     isMinted: req.body.isMinted,
+                    attributes: req.body.attributes,
+                    levels : req.body.levels,
                     categoryID: categoryID,
                     brandID: brandID,
                   });
