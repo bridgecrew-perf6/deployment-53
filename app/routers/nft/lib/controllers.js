@@ -496,6 +496,7 @@ controllers.createNFT = async (req, res) => {
                   const collectionData = await Collection.findOne({ _id: mongoose.Types.ObjectId(collectionID) });
                   const brandID = collectionData.brandID;
                   const categoryID = collectionData.categoryID;
+                  
                   const nft = new NFT({
                     name: req.body.name,
                     collectionID: collectionID && collectionID != undefined ? collectionID : "",
@@ -509,11 +510,36 @@ controllers.createNFT = async (req, res) => {
                     image: req.file.location,
                     price: req.body.price,
                     isMinted: req.body.isMinted,
-                    attributes: req.body.attributes,
-                    levels : req.body.levels,
                     categoryID: categoryID,
                     brandID: brandID,
                   });
+
+                  let NFTAttr = JSON.parse(req.body.attributes);
+                  if( NFTAttr.length > 0 ){
+                    NFTAttr.forEach(obj => {
+                      for (let [key, value] of Object.entries(obj)) {
+                        nft.attributes.push({
+                          name: key,
+                          value: value
+                        });
+                        console.log(key + " : " +value);
+                      }
+                    });
+                  }
+                  
+                  let NFTLevels = JSON.parse(req.body.levels);
+                  if( NFTLevels.length > 0 ){
+                    NFTLevels.forEach(obj => {
+                      for (let [key, value] of Object.entries(obj)) {
+                        nft.levels.push({
+                          name: key,
+                          value: value
+                        });
+                        console.log(key + " : " +value);
+                      }
+                    });
+                  }
+                  
                   nft.assetsInfo.push({
                     size: req.body.imageSize,
                     type: req.body.imageType,
