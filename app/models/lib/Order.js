@@ -7,7 +7,7 @@ const orderSchema = mongoose.Schema({
   },
   collectionAddress: {
     type: String,
-    require: true
+    require: true,
   },
   sellerID: {
     type: mongoose.Schema.ObjectId,
@@ -44,9 +44,12 @@ const orderSchema = mongoose.Schema({
   salt: {
     type: String,
   },
-  signature: {
-    type: String,
+  signature: Array,
+  deadline: {
+    type: Number,
   },
+  bundleTokens: Array,
+  bundleTokensQuantities: Array,
   createdBy: {
     type: mongoose.Schema.ObjectId,
     ref: "User",

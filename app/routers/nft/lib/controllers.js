@@ -124,7 +124,7 @@ controllers.createCollection = async (req, res) => {
           })
           .catch((error) => {
             console.log(error);
-            return res.reply(messages.already_exists("Collection"), error);
+            return res.reply(error);
           });
       }
     });
@@ -250,28 +250,9 @@ controllers.myCollections = async (req, res) => {
     }
 
     await Collection.find(searchObj)
+      .populate("categoryID")
+      .populate("brandID")
       .sort({ createdOn: -1 })
-      .select({
-        name: 1,
-        type: 1,
-        logoImage: 1,
-        coverImage: 1,
-        symbol: 1,
-        description: 1,
-        categoryID: 1,
-        brandID: 1,
-        contractAddress: 1,
-        chainID: 1,
-        salesCount: 1,
-        nftCount: 1,
-        volumeTraded: 1,
-        preSaleStartTime: 1,
-        totalSupply: 1,
-        createdBy: 1,
-        createdOn: 1,
-        lastUpdatedBy: 1,
-        lastUpdatedOn: 1,
-      })
       .limit(limit)
       .skip(startIndex)
       .lean()
@@ -550,6 +531,7 @@ controllers.createNFT = async (req, res) => {
                     isMinted: req.body.isMinted,
                     categoryID: categoryID,
                     brandID: brandID,
+                    lazyMintingStatus: 1,
                   });
                   console.log("body", req.body);
                   console.log("NFTAttr", req.body.attributes);
@@ -713,6 +695,7 @@ controllers.viewNFTs = async (req, res) => {
         createdOn: 1,
         lastUpdatedBy: 1,
         lastUpdatedOn: 1,
+        lazyMintingStatus: 1,
       })
       .limit(limit)
       .skip(startIndex)
@@ -1015,20 +998,6 @@ controllers.mynftlist = async (req, res) => {
     return res.reply(messages.server_error());
   }
 };
-
-// controllers.getcollections = async (req, res) => {
-//   try {
-//     let aCollections = await Collection.find({});
-//     console.log("Collections", aCollections);
-
-//     if (!aCollections) {
-//       return res.reply(messages.not_found("collection"));
-//     }
-//     return res.reply(messages.no_prefix("Collections List"), aCollections);
-//   } catch (e) {
-//     return res.reply(messages.error(e));
-//   }
-// };
 
 controllers.getHotCollections = async (req, res) => {
   try {

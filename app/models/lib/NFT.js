@@ -7,8 +7,9 @@ const nftSchema = mongoose.Schema({
   },
   type: {
     type: Number,
+    default: 1,
     require: true,
-    enum: [0, 1],
+    enum: [1, 2],
   },
   image: { type: String, require: true },
   price: { type: mongoose.Types.Decimal128, require: true },

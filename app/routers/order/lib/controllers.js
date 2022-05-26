@@ -24,23 +24,19 @@ controllers.createOrder = async (req, res) => {
     let validity = Math.floor(orderDate / 1000);
 
     const order = new Order({
-      oNftId: req.body.nftId,
-      oSellerWalletAddress: req.body.seller,
-      oTokenId: req.body.tokenId,
-      oTokenAddress: req.body.collection,
-      oQuantity: req.body.quantity,
-      oType: req.body.saleType,
-      oPaymentToken: req.body.tokenAddress,
-      oPrice: req.body.price,
-      oSalt: req.body.salt,
-      oSignature: req.body.signature,
-      oValidUpto: req.body.validUpto,
-      oBundleTokens: [],
-      oBundleTokensQuantities: [],
-      oStatus: 1,
-      oSeller: req.userId,
-      oStatus: req.body.status,
-      auction_end_date: req.body.auctionEndDate,
+      nftId: req.body.nftId,
+      tokenID: req.body.tokenId,
+      tokenAddress: req.body.collection,
+      quantity: req.body.quantity,
+      salesType: req.body.saleType,
+      paymentToken: req.body.tokenAddress,
+      price: req.body.price,
+      salt: req.body.salt,
+      signature: req.body.signature,
+      bundleTokens: [],
+      bundleTokensQuantities: [],
+      sellerID: req.userId,
+      deadline: req.body.auctionEndDate,
     });
 
     order
