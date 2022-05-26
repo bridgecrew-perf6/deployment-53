@@ -124,7 +124,7 @@ controllers.createCollection = async (req, res) => {
           })
           .catch((error) => {
             console.log(error);
-            return res.reply(messages.already_exists("Collection"), error);
+            return res.reply(error);
           });
       }
     });
@@ -622,6 +622,7 @@ controllers.createNFT = async (req, res) => {
                     isMinted: req.body.isMinted,
                     categoryID: categoryID,
                     brandID: brandID,
+                    lazyMintingStatus: 1,
                   });
                   console.log("body", req.body);
                   console.log("NFTAttr", req.body.attributes);
@@ -1093,20 +1094,6 @@ controllers.mynftlist = async (req, res) => {
     return res.reply(messages.server_error());
   }
 };
-
-// controllers.getcollections = async (req, res) => {
-//   try {
-//     let aCollections = await Collection.find({});
-//     console.log("Collections", aCollections);
-
-//     if (!aCollections) {
-//       return res.reply(messages.not_found("collection"));
-//     }
-//     return res.reply(messages.no_prefix("Collections List"), aCollections);
-//   } catch (e) {
-//     return res.reply(messages.error(e));
-//   }
-// };
 
 controllers.getHotCollections = async (req, res) => {
   try {

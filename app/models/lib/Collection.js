@@ -7,8 +7,8 @@ const collectionSchema = mongoose.Schema({
   },
   type: {
     type: Number,
-    enum: [0, 1],
-    default: 0,
+    enum: [1, 2],
+    default: 1,
   },
   symbol: {
     type: String,
