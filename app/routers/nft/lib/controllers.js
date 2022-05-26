@@ -141,39 +141,39 @@ controllers.getCollections = async (req, res) => {
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
 
-    const collectionID = "";
+    let collectionID = "";
     if(req.body.collectionID && req.body.collectionID !== undefined){
       collectionID = req.body.collectionID;
     }
-    const userID = "";
+    let userID = "";
     if(req.body.userID && req.body.userID !== undefined){
       userID = req.body.userID;
     }
-    const categoryID = "";
+    let categoryID = "";
     if(req.body.categoryID && req.body.categoryID !== undefined){
       categoryID = req.body.categoryID;
     }
-    const brandID = "";
+    let brandID = "";
     if(req.body.brandID && req.body.brandID !== undefined){
       brandID = req.body.brandID;
     }
-    const ERCType = "";
+    let ERCType = "";
     if(req.body.ERCType && req.body.ERCType !== undefined){
       ERCType = req.body.ERCType;
     }
-    const searchText = "";
+    let searchText = "";
     if(req.body.searchText && req.body.searchText !== undefined){
       searchText = req.body.searchText;
     }
-    const filterString = "";
+    let filterString = "";
     if(req.body.filterString && req.body.filterString !== undefined){
       filterString = req.body.filterString;
     }
-    const isMinted = "";
+    let isMinted = "";
     if(req.body.isMinted && req.body.isMinted !== undefined){
       isMinted = req.body.isMinted;
     }
-    const isHotCollection = "";
+    let isHotCollection = "";
     if(req.body.isHotCollection && req.body.isHotCollection !== undefined){
       isHotCollection = req.body.isHotCollection;
     }
@@ -210,7 +210,7 @@ controllers.getCollections = async (req, res) => {
       ];
     }
     let searchObj = Object.assign({}, searchArray);
-
+    console.log("Obj"+searchObj);
     const results = {};
     if (endIndex < (await Collection.countDocuments(searchObj).exec())) {
       results.next = {
@@ -257,7 +257,7 @@ controllers.myCollections = async (req, res) => {
     const limit = parseInt(req.body.limit);
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
-    const searchText = "";
+    let searchText = "";
     if(req.body.searchText && req.body.searchText !== undefined){
       searchText = req.body.searchText;
     }
@@ -477,7 +477,7 @@ controllers.getUpcomingCollections = async (req, res) => {
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
 
-    const searchText = "";
+    let searchText = "";
     if(req.body.searchText && req.body.searchText !== undefined){
       searchText = req.body.searchText;
     }
@@ -730,31 +730,35 @@ controllers.viewNFTs = async (req, res) => {
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
 
-    const nftID = "";
+    let nftID = "";
     if(req.body.nftID && req.body.nftID !== undefined){
       nftID = req.body.nftID;
     }
-    const userID = "";
+    let userID = "";
     if(req.body.userID && req.body.userID !== undefined){
       userID = req.body.userID;
     }
-    const categoryID = "";
+    let collectionID = "";
+    if(req.body.collectionID && req.body.collectionID !== undefined){
+      collectionID = req.body.collectionID;
+    }
+    let categoryID = "";
     if(req.body.categoryID && req.body.categoryID !== undefined){
       categoryID = req.body.categoryID;
     }
-    const brandID = "";
+    let brandID = "";
     if(req.body.brandID && req.body.brandID !== undefined){
       brandID = req.body.brandID;
     }
-    const ERCType = "";
+    let ERCType = "";
     if(req.body.ERCType && req.body.ERCType !== undefined){
       ERCType = req.body.ERCType;
     }
-    const searchText = "";
+    let searchText = "";
     if(req.body.searchText && req.body.searchText !== undefined){
       searchText = req.body.searchText;
     }
-    const isMinted = "";
+    let isMinted = "";
     if(req.body.isMinted && req.body.isMinted !== undefined){
       isMinted = req.body.isMinted;
     }
