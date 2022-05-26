@@ -278,6 +278,33 @@ controllers.adminregister = async (req, res) => {
 };
 */
 
+
+controllers.adminlogin = async (req, res, next) => {
+  try {
+    if (!req.body.username) return res.reply(messages.required_field("Username"));
+    if (!req.body.password) return res.reply(messages.required_field("Password"));
+    
+    User.findOne({ password: req.body.password, username : req.body.username }, (err, user) => {
+      if (err) console.log(err); 
+      if (!user) return res.reply(messages.not_found("User"));
+      var token = signJWT(user);
+      req.session["_id"] = user._id;
+      req.session["username"] = user.username;
+      return res.reply(messages.successfully("User Login"), {
+        auth: true,
+        token,
+        walletAddress: user.walletAddress,
+        userId: user._id,
+        userType: user.role,
+        userData: user,
+      });
+    });
+  } catch (error) {
+    console.log(error); 
+    return res.reply(messages.server_error());
+  }
+};
+
 controllers.changePassword = async (req, res, next) => {
   try {
     if (!req.userId) return res.reply(messages.unauthorized());
@@ -312,8 +339,6 @@ controllers.changePassword = async (req, res, next) => {
     return res.reply(messages.server_error());
   }
 };
-
-
 
 controllers.checkuseraddress = (req, res) => {
   try {
