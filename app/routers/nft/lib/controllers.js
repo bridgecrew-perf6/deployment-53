@@ -406,7 +406,62 @@ controllers.updateCollection = async (req, res) => {
   }
 };
 
+controllers.getUpcomingCollections = async (req, res) => {
+  try {
+    let data = [];
+    const page = parseInt(req.body.page);
+    const limit = parseInt(req.body.limit);
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
 
+    const searchText = req.body.searchText;
+    let searchArray = [];
+    searchArray["preSaleStartTime"] = {$lt: new Date()};
+    if (searchText !== "") {
+      searchArray["or"] = [
+        { 'name': { $regex: new RegExp(searchText), $options: "i" } },
+        { 'contractAddress': { $regex: new RegExp(searchText), $options: "i" } }
+      ];
+    }
+    let searchObj = Object.assign({}, searchArray);
+
+    const results = {};
+    if (endIndex < (await Collection.countDocuments(searchObj).exec())) {
+      results.next = {
+        page: page + 1,
+        limit: limit,
+      };
+    }
+    if (startIndex > 0) {
+      results.previous = {
+        page: page - 1,
+        limit: limit,
+      };
+    }
+
+    await Collection.find(searchObj)
+      .populate("categoryID")
+      .populate("brandID")
+      .sort({ createdOn: -1 })
+      .limit(limit)
+      .skip(startIndex)
+      .lean()
+      .exec()
+      .then((res) => {
+        data.push(res);
+      })
+      .catch((e) => {
+        console.log("Error", e);
+      });
+    results.count = await Collection.countDocuments(searchObj).exec();
+    results.results = data;
+    res.header("Access-Control-Max-Age", 600);
+    return res.reply(messages.success("Collection List"), results);
+  } catch (error) {
+    console.log("Error " + error)
+    return res.reply(messages.server_error());
+  }
+};
 
 
 
@@ -622,6 +677,8 @@ controllers.viewNFTs = async (req, res) => {
       searchArray["name"] = { $regex: new RegExp(searchText), $options: "i" };
     }
     let searchObj = Object.assign({}, searchArray);
+
+    console.log(searchObj);
 
     const results = {};
     if (endIndex < (await NFT.countDocuments(searchObj).exec())) {

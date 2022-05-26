@@ -8,6 +8,7 @@ router.post("/getCollections", nftController.getCollections);
 router.post("/myCollections", nftMiddleware.verifyToken, nftController.myCollections);
 router.get("/viewCollection/:collectionID", nftMiddleware.verifyWithoutToken, nftController.viewCollection );
 router.post( "/updateCollection", nftMiddleware.verifyToken, nftController.updateCollection );
+router.post("/getUpcomingCollections", nftController.getUpcomingCollections);
 
 router.post("/createNFT", nftMiddleware.verifyToken, nftController.createNFT);
 router.post("/viewNFTs", nftController.viewNFTs);
