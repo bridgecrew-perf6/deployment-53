@@ -1,7 +1,15 @@
 /* eslint-disable no-undef */
 const fs = require("fs");
 const http = require("https");
-const { NFT, Collection, User, Bid, NFTowners, Order, Brand } = require("../../../models");
+const {
+  NFT,
+  Collection,
+  User,
+  Bid,
+  NFTowners,
+  Order,
+  Brand,
+} = require("../../../models");
 const pinataSDK = require("@pinata/sdk");
 const aws = require("aws-sdk");
 const multer = require("multer");
@@ -16,7 +24,6 @@ var jwt = require("jsonwebtoken");
 const e = require("express");
 
 const controllers = {};
-
 
 // Set S3 endpoint to DigitalOcean Spaces
 const spacesEndpoint = new aws.Endpoint(process.env.BUCKET_ENDPOINT);
@@ -70,7 +77,10 @@ controllers.createCollection = async (req, res) => {
     allowedMimes = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
     errAllowed = "JPG, JPEG, PNG,GIF";
 
-    uploadBanner.fields([{ name: 'logoImage', maxCount: 1 }, { name: 'coverImage', maxCount: 1 }])(req, res, function (error) {
+    uploadBanner.fields([
+      { name: "logoImage", maxCount: 1 },
+      { name: "coverImage", maxCount: 1 },
+    ])(req, res, function (error) {
       if (error) {
         log.red(error);
         console.log("Error ");
@@ -92,6 +102,7 @@ controllers.createCollection = async (req, res) => {
         }
         const collection = new Collection({
           name: req.body.name,
+          symbol: req.body.symbol,
           description: req.body.description,
           type: req.body.type,
           contractAddress: req.body.contractAddress,
@@ -103,17 +114,20 @@ controllers.createCollection = async (req, res) => {
           preSaleStartTime: req.body.preSaleStartTime,
           totalSupply: req.body.totalSupply,
           nextId: 0,
+          price: req.body.price,
           createdBy: req.userId,
         });
-        collection.save().then((result) => {
-          return res.reply(messages.created("Collection"), result);
-        }).catch((error) => {
-          console.log(error);
-          return res.reply(messages.already_exists("Collection"), error);
-        });
+        collection
+          .save()
+          .then((result) => {
+            return res.reply(messages.created("Collection"), result);
+          })
+          .catch((error) => {
+            console.log(error);
+            return res.reply(messages.already_exists("Collection"), error);
+          });
       }
     });
-
   } catch (error) {
     return res.reply(messages.server_error());
   }
@@ -164,8 +178,8 @@ controllers.getCollections = async (req, res) => {
     }
     if (searchText !== "") {
       searchArray["or"] = [
-        { 'name': { $regex: new RegExp(searchText), $options: "i" } },
-        { 'contractAddress': { $regex: new RegExp(searchText), $options: "i" } }
+        { name: { $regex: new RegExp(searchText), $options: "i" } },
+        { contractAddress: { $regex: new RegExp(searchText), $options: "i" } },
       ];
     }
     let searchObj = Object.assign({}, searchArray);
@@ -203,7 +217,7 @@ controllers.getCollections = async (req, res) => {
     res.header("Access-Control-Max-Age", 600);
     return res.reply(messages.success("Collection List"), results);
   } catch (error) {
-    console.log("Error " + error)
+    console.log("Error " + error);
     return res.reply(messages.server_error());
   }
 };
@@ -242,6 +256,7 @@ controllers.myCollections = async (req, res) => {
         type: 1,
         logoImage: 1,
         coverImage: 1,
+        symbol: 1,
         description: 1,
         categoryID: 1,
         brandID: 1,
@@ -272,18 +287,21 @@ controllers.myCollections = async (req, res) => {
     res.header("Access-Control-Max-Age", 600);
     return res.reply(messages.success("Collection List"), results);
   } catch (error) {
-    console.log("Error " + error)
+    console.log("Error " + error);
     return res.reply(messages.server_error());
   }
 };
 
 controllers.viewCollection = async (req, res) => {
   try {
-    if (!req.params.collectionID) return res.reply(messages.not_found("Collection ID"));
+    if (!req.params.collectionID)
+      return res.reply(messages.not_found("Collection ID"));
     if (!validators.isValidObjectID(req.params.collectionID))
       res.reply(messages.invalid("Collection ID"));
 
-    let collectionData = await Collection.findById(req.params.collectionID).populate({
+    let collectionData = await Collection.findById(
+      req.params.collectionID
+    ).populate({
       path: "createdBy",
       options: {
         limit: 1,
@@ -295,6 +313,7 @@ controllers.viewCollection = async (req, res) => {
         coverImage: 1,
         description: 1,
         categoryID: 1,
+        symbol: 1,
         brandID: 1,
         contractAddress: 1,
         chainID: 1,
@@ -367,48 +386,59 @@ controllers.updateCollection = async (req, res) => {
     allowedMimes = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
     errAllowed = "JPG, JPEG, PNG,GIF";
 
-    uploadBanner.fields([{ name: 'logoImage', maxCount: 1 }, { name: 'coverImage', maxCount: 1 }])(req, res, function (error) {
+    uploadBanner.fields([
+      { name: "logoImage", maxCount: 1 },
+      { name: "coverImage", maxCount: 1 },
+    ])(req, res, function (error) {
       let updateData = [];
       let collectionID = req.body.id;
-      if (req.files && req.files.logoImage && req.files.logoImage[0] && req.files.logoImage[0].location) {
-        updateData['logoImage'] = req.files.logoImage[0].location;
+      if (
+        req.files &&
+        req.files.logoImage &&
+        req.files.logoImage[0] &&
+        req.files.logoImage[0].location
+      ) {
+        updateData["logoImage"] = req.files.logoImage[0].location;
       }
-      if (req.files && req.files.coverImage && req.files.coverImage[0] && req.files.coverImage[0].location) {
-        updateData['coverImage'] = req.files.coverImage[0].location;
+      if (
+        req.files &&
+        req.files.coverImage &&
+        req.files.coverImage[0] &&
+        req.files.coverImage[0].location
+      ) {
+        updateData["coverImage"] = req.files.coverImage[0].location;
       }
       if (req.body) {
         if (req.body.price) {
-          updateData['price'] = req.body.price;
+          updateData["price"] = req.body.price;
         }
         if (req.body.isHotCollection) {
-          updateData['isHotCollection'] = req.body.isHotCollection;
+          updateData["isHotCollection"] = req.body.isHotCollection;
         }
         if (req.body.isMinted) {
-          updateData['isMinted'] = req.body.isMinted;
+          updateData["isMinted"] = req.body.isMinted;
         }
         if (req.body.preSaleStartTime) {
-          updateData['preSaleStartTime'] = req.body.preSaleStartTime;
+          updateData["preSaleStartTime"] = req.body.preSaleStartTime;
         }
-        updateData['lastUpdatedBy'] = req.userId;
-        updateData['lastUpdatedOn'] = Date.now();
+        updateData["lastUpdatedBy"] = req.userId;
+        updateData["lastUpdatedOn"] = Date.now();
       }
       let updateObj = Object.assign({}, updateData);
       Collection.findByIdAndUpdate(
         { _id: mongoose.Types.ObjectId(collectionID) },
         { $set: updateObj }
       ).then((collection) => {
-        return res.reply(messages.updated("Collection Updated successfully."), collection );
+        return res.reply(
+          messages.updated("Collection Updated successfully."),
+          collection
+        );
       });
     });
-
   } catch (error) {
     return res.reply(messages.server_error());
   }
 };
-
-
-
-
 
 controllers.createNFT = async (req, res) => {
   try {
@@ -469,37 +499,45 @@ controllers.createNFT = async (req, res) => {
               pathString + req.file.originalname
             );
             stream.on("finish", async function () {
-              pinata.pinFileToIPFS(readableStreamForFile, iOptions).then((res) => {
-                attributes = JSON.parse(req.body.attributes);
-                let uploadingData = {};
-                uploadingData = {
-                  description: req.body.description,
-                  external_url: "",
-                  image: "https://ipfs.io/ipfs/" + res.IpfsHash,
-                  name: req.body.name,
-                  attributes: req.body.attributes,
-                };
-                console.log("uploadingData", uploadingData);
-                const mOptions = {
-                  pinataMetadata: {
-                    name: "hello",
-                  },
-                  pinataOptions: {
-                    cidVersion: 0,
-                  },
-                };
-                console.log("res---", res.IpfsHash);
-                return pinata.pinJSONToIPFS(uploadingData, mOptions);
-              })
+              pinata
+                .pinFileToIPFS(readableStreamForFile, iOptions)
+                .then((res) => {
+                  attributes = JSON.parse(req.body.attributes);
+                  let uploadingData = {};
+                  uploadingData = {
+                    description: req.body.description,
+                    external_url: "",
+                    image: "https://ipfs.io/ipfs/" + res.IpfsHash,
+                    name: req.body.name,
+                    attributes: req.body.attributes,
+                  };
+                  console.log("uploadingData", uploadingData);
+                  const mOptions = {
+                    pinataMetadata: {
+                      name: "hello",
+                    },
+                    pinataOptions: {
+                      cidVersion: 0,
+                    },
+                  };
+                  console.log("res---", res.IpfsHash);
+                  return pinata.pinJSONToIPFS(uploadingData, mOptions);
+                })
                 .then(async (file2) => {
+                  console.log("111", req.body);
                   const collectionID = req.body.collectionID;
-                  const collectionData = await Collection.findOne({ _id: mongoose.Types.ObjectId(collectionID) });
+                  const collectionData = await Collection.findOne({
+                    _id: mongoose.Types.ObjectId(collectionID),
+                  });
                   const brandID = collectionData.brandID;
                   const categoryID = collectionData.categoryID;
-                  
+                  console.log("222", req.body);
                   const nft = new NFT({
                     name: req.body.name,
-                    collectionID: collectionID && collectionID != undefined ? collectionID : "",
+                    collectionID:
+                      collectionID && collectionID != undefined
+                        ? collectionID
+                        : "",
                     hash: file2.IpfsHash,
                     ownedBy: [],
                     totalQuantity: req.body.quantity,
@@ -513,33 +551,35 @@ controllers.createNFT = async (req, res) => {
                     categoryID: categoryID,
                     brandID: brandID,
                   });
-
+                  console.log("body", req.body);
+                  console.log("NFTAttr", req.body.attributes);
                   let NFTAttr = JSON.parse(req.body.attributes);
-                  if( NFTAttr.length > 0 ){
-                    NFTAttr.forEach(obj => {
+                  console.log("NFTAttr", NFTAttr);
+                  if (NFTAttr.length > 0) {
+                    NFTAttr.forEach((obj) => {
                       for (let [key, value] of Object.entries(obj)) {
                         nft.attributes.push({
                           name: key,
-                          value: value
+                          value: value,
                         });
-                        console.log(key + " : " +value);
+                        console.log(key + " : " + value);
                       }
                     });
                   }
-                  
+
                   let NFTLevels = JSON.parse(req.body.levels);
-                  if( NFTLevels.length > 0 ){
-                    NFTLevels.forEach(obj => {
+                  if (NFTLevels.length > 0) {
+                    NFTLevels.forEach((obj) => {
                       for (let [key, value] of Object.entries(obj)) {
                         nft.levels.push({
                           name: key,
-                          value: value
+                          value: value,
                         });
-                        console.log(key + " : " +value);
+                        console.log(key + " : " + value);
                       }
                     });
                   }
-                  
+
                   nft.assetsInfo.push({
                     size: req.body.imageSize,
                     type: req.body.imageType,
@@ -549,21 +589,33 @@ controllers.createNFT = async (req, res) => {
                     address: creatorAddress.toLowerCase(),
                     quantity: req.body.quantity,
                   });
-                  nft.save().then(async (result) => {
-                    const collection = await Collection.findOne({
-                      _id: mongoose.Types.ObjectId(collectionID),
+                  nft
+                    .save()
+                    .then(async (result) => {
+                      const collection = await Collection.findOne({
+                        _id: mongoose.Types.ObjectId(collectionID),
+                      });
+                      let nextID = collection.getNextID();
+                      collection.nextID = nextID;
+                      collection.save();
+                      await Collection.findOneAndUpdate(
+                        { _id: mongoose.Types.ObjectId(collectionID) },
+                        { $inc: { nftCount: 1 } },
+                        function () {}
+                      );
+                      await Brand.findOneAndUpdate(
+                        { _id: mongoose.Types.ObjectId(brandID) },
+                        { $inc: { nftCount: 1 } },
+                        function () {}
+                      );
+                      return res.reply(messages.created("NFT"), result);
+                    })
+                    .catch((error) => {
+                      console.log("Created NFT error", error);
+                      return res.reply(messages.error());
                     });
-                    let nextID = collection.getNextID();
-                    collection.nextID = nextID;
-                    collection.save();
-                    await Collection.findOneAndUpdate({ _id: mongoose.Types.ObjectId(collectionID) }, { $inc: { nftCount: 1 } }, function () { });
-                    await Brand.findOneAndUpdate({ _id: mongoose.Types.ObjectId(brandID) }, { $inc: { nftCount: 1 } }, function () { });
-                    return res.reply(messages.created("NFT"), result);
-                  }).catch((error) => {
-                    console.log("Created NFT error", error);
-                    return res.reply(messages.error());
-                  });
-                }).catch((e) => {
+                })
+                .catch((e) => {
                   console.log("Error " + e);
                   return res.reply(messages.error());
                 });
@@ -677,7 +729,7 @@ controllers.viewNFTs = async (req, res) => {
     res.header("Access-Control-Max-Age", 600);
     return res.reply(messages.success("NFT List"), results);
   } catch (error) {
-    console.log("Error " + error)
+    console.log("Error " + error);
     return res.reply(messages.server_error());
   }
 };
@@ -692,7 +744,12 @@ controllers.likeNFT = async (req, res) => {
           let likeMAINarray = [];
           likeMAINarray = NFTData.nUser_likes;
           let flag = "";
-          let likeARY = likeMAINarray && likeMAINarray.length ? likeMAINarray.filter((v) => v.toString() == req.userId.toString()) : [];
+          let likeARY =
+            likeMAINarray && likeMAINarray.length
+              ? likeMAINarray.filter(
+                  (v) => v.toString() == req.userId.toString()
+                )
+              : [];
           if (likeARY && likeARY.length) {
             flag = "dislike";
             var index = likeMAINarray.indexOf(likeARY[0]);
@@ -723,12 +780,6 @@ controllers.likeNFT = async (req, res) => {
     return res.reply(messages.server_error());
   }
 };
-
-
-
-
-
-
 
 controllers.getNftOwner = async (req, res) => {
   try {
@@ -965,8 +1016,6 @@ controllers.mynftlist = async (req, res) => {
   }
 };
 
-
-
 // controllers.getcollections = async (req, res) => {
 //   try {
 //     let aCollections = await Collection.find({});
@@ -1075,8 +1124,6 @@ controllers.getHotCollections = async (req, res) => {
     return res.reply(messages.error(e));
   }
 };
-
-
 
 controllers.collectionlistMy = async (req, res) => {
   try {
@@ -1591,8 +1638,8 @@ controllers.landing = async (req, res) => {
                         $eq: [
                           "$$user_likes",
                           req.userId &&
-                            req.userId != undefined &&
-                            req.userId != null
+                          req.userId != undefined &&
+                          req.userId != null
                             ? mongoose.Types.ObjectId(req.userId)
                             : "",
                         ],
@@ -1715,8 +1762,8 @@ controllers.landing = async (req, res) => {
                         $eq: [
                           "$$user_likes",
                           req.userId &&
-                            req.userId != undefined &&
-                            req.userId != null
+                          req.userId != undefined &&
+                          req.userId != null
                             ? mongoose.Types.ObjectId(req.userId)
                             : "",
                         ],
@@ -1839,8 +1886,8 @@ controllers.landing = async (req, res) => {
                         $eq: [
                           "$$user_likes",
                           req.userId &&
-                            req.userId != undefined &&
-                            req.userId != null
+                          req.userId != undefined &&
+                          req.userId != null
                             ? mongoose.Types.ObjectId(req.userId)
                             : "",
                         ],
@@ -2285,7 +2332,7 @@ controllers.updateNftOrder = async (req, res) => {
       nftownerID,
       { $inc: { nQuantityLeft: -req.body.putOnSaleQty } },
       { new: true },
-      function (err, response) { }
+      function (err, response) {}
     );
     if (req.body.erc721) {
       await NFT.findByIdAndUpdate(sId, {
@@ -2305,8 +2352,6 @@ controllers.updateNftOrder = async (req, res) => {
     return res.reply(messages.server_error());
   }
 };
-
-
 
 controllers.uploadImage = async (req, res) => {
   try {
@@ -3026,10 +3071,10 @@ controllers.transferNfts = async (req, res) => {
         (o) => o.address === req.body.receiver.toLowerCase()
       ).quantity
         ? parseInt(
-          _NFTB.nOwnedBy.find(
-            (o) => o.address === req.body.receiver.toLowerCase()
-          ).quantity
-        )
+            _NFTB.nOwnedBy.find(
+              (o) => o.address === req.body.receiver.toLowerCase()
+            ).quantity
+          )
         : 0;
       boughtQty = req.body.qty;
       let ownedQty = currentQty + boughtQty;
