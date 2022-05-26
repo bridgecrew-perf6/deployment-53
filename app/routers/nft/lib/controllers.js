@@ -141,15 +141,42 @@ controllers.getCollections = async (req, res) => {
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
 
-    const collectionID = req.body.collectionID;
-    const userID = req.body.userID;
-    const categoryID = req.body.categoryID;
-    const brandID = req.body.brandID;
-    const ERCType = req.body.ERCType;
-    const searchText = req.body.searchText;
-    const filterString = req.body.filterString;
-    const isMinted = req.body.isMinted;
-    const isHotCollection = req.body.isHotCollection;
+    let collectionID = "";
+    if(req.body.collectionID && req.body.collectionID !== undefined){
+      collectionID = req.body.collectionID;
+    }
+    let userID = "";
+    if(req.body.userID && req.body.userID !== undefined){
+      userID = req.body.userID;
+    }
+    let categoryID = "";
+    if(req.body.categoryID && req.body.categoryID !== undefined){
+      categoryID = req.body.categoryID;
+    }
+    let brandID = "";
+    if(req.body.brandID && req.body.brandID !== undefined){
+      brandID = req.body.brandID;
+    }
+    let ERCType = "";
+    if(req.body.ERCType && req.body.ERCType !== undefined){
+      ERCType = req.body.ERCType;
+    }
+    let searchText = "";
+    if(req.body.searchText && req.body.searchText !== undefined){
+      searchText = req.body.searchText;
+    }
+    let filterString = "";
+    if(req.body.filterString && req.body.filterString !== undefined){
+      filterString = req.body.filterString;
+    }
+    let isMinted = "";
+    if(req.body.isMinted && req.body.isMinted !== undefined){
+      isMinted = req.body.isMinted;
+    }
+    let isHotCollection = "";
+    if(req.body.isHotCollection && req.body.isHotCollection !== undefined){
+      isHotCollection = req.body.isHotCollection;
+    }
 
     let searchArray = [];
     if (collectionID !== "") {
@@ -183,7 +210,7 @@ controllers.getCollections = async (req, res) => {
       ];
     }
     let searchObj = Object.assign({}, searchArray);
-
+    console.log("Obj"+searchObj);
     const results = {};
     if (endIndex < (await Collection.countDocuments(searchObj).exec())) {
       results.next = {
@@ -230,9 +257,19 @@ controllers.myCollections = async (req, res) => {
     const limit = parseInt(req.body.limit);
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
+    let searchText = "";
+    if(req.body.searchText && req.body.searchText !== undefined){
+      searchText = req.body.searchText;
+    }
 
     let searchArray = [];
     searchArray["createdBy"] = mongoose.Types.ObjectId(req.userId);
+    if (searchText !== "") {
+      searchArray["or"] = [
+        { name: { $regex: new RegExp(searchText), $options: "i" } },
+        { contractAddress: { $regex: new RegExp(searchText), $options: "i" } },
+      ];
+    }
     let searchObj = Object.assign({}, searchArray);
 
     const results = {};
@@ -324,14 +361,6 @@ controllers.viewCollection = async (req, res) => {
       aNFT.user_likes && aNFT.user_likes.length
         ? aNFT.user_likes.filter((v) => v.toString() == req.userId.toString())
         : [];
-
-    // if (likeARY && likeARY.length) {
-    //   aNFT.is_user_like = "true";
-    // } else {
-    //   aNFT.is_user_like = "false";
-    // }
-
-    //
     if (token) {
       token = token.replace("Bearer ", "");
       jwt.verify(token, process.env.JWT_SECRET, function (err, decoded) {
@@ -420,6 +449,68 @@ controllers.updateCollection = async (req, res) => {
     return res.reply(messages.server_error());
   }
 };
+
+controllers.getUpcomingCollections = async (req, res) => {
+  try {
+    let data = [];
+    const page = parseInt(req.body.page);
+    const limit = parseInt(req.body.limit);
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+
+    let searchText = "";
+    if(req.body.searchText && req.body.searchText !== undefined){
+      searchText = req.body.searchText;
+    }
+    let searchArray = [];
+    searchArray["preSaleStartTime"] = {$lt: new Date()};
+    if (searchText !== "") {
+      searchArray["or"] = [
+        { 'name': { $regex: new RegExp(searchText), $options: "i" } },
+        { 'contractAddress': { $regex: new RegExp(searchText), $options: "i" } }
+      ];
+    }
+    let searchObj = Object.assign({}, searchArray);
+
+    const results = {};
+    if (endIndex < (await Collection.countDocuments(searchObj).exec())) {
+      results.next = {
+        page: page + 1,
+        limit: limit,
+      };
+    }
+    if (startIndex > 0) {
+      results.previous = {
+        page: page - 1,
+        limit: limit,
+      };
+    }
+
+    await Collection.find(searchObj)
+      .populate("categoryID")
+      .populate("brandID")
+      .sort({ createdOn: -1 })
+      .limit(limit)
+      .skip(startIndex)
+      .lean()
+      .exec()
+      .then((res) => {
+        data.push(res);
+      })
+      .catch((e) => {
+        console.log("Error", e);
+      });
+    results.count = await Collection.countDocuments(searchObj).exec();
+    results.results = data;
+    res.header("Access-Control-Max-Age", 600);
+    return res.reply(messages.success("Collection List"), results);
+  } catch (error) {
+    console.log("Error " + error)
+    return res.reply(messages.server_error());
+  }
+};
+
+
 
 controllers.createNFT = async (req, res) => {
   try {
@@ -621,14 +712,38 @@ controllers.viewNFTs = async (req, res) => {
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
 
-    const nftID = req.body.nftID;
-    const collectionID = req.body.collectionID;
-    const userID = req.body.userID;
-    const categoryID = req.body.categoryID;
-    const brandID = req.body.brandID;
-    const ERCType = req.body.ERCType;
-    const searchText = req.body.searchText;
-    const isMinted = req.body.isMinted;
+    let nftID = "";
+    if(req.body.nftID && req.body.nftID !== undefined){
+      nftID = req.body.nftID;
+    }
+    let userID = "";
+    if(req.body.userID && req.body.userID !== undefined){
+      userID = req.body.userID;
+    }
+    let collectionID = "";
+    if(req.body.collectionID && req.body.collectionID !== undefined){
+      collectionID = req.body.collectionID;
+    }
+    let categoryID = "";
+    if(req.body.categoryID && req.body.categoryID !== undefined){
+      categoryID = req.body.categoryID;
+    }
+    let brandID = "";
+    if(req.body.brandID && req.body.brandID !== undefined){
+      brandID = req.body.brandID;
+    }
+    let ERCType = "";
+    if(req.body.ERCType && req.body.ERCType !== undefined){
+      ERCType = req.body.ERCType;
+    }
+    let searchText = "";
+    if(req.body.searchText && req.body.searchText !== undefined){
+      searchText = req.body.searchText;
+    }
+    let isMinted = "";
+    if(req.body.isMinted && req.body.isMinted !== undefined){
+      isMinted = req.body.isMinted;
+    }
 
     let searchArray = [];
     if (nftID !== "") {
@@ -657,6 +772,8 @@ controllers.viewNFTs = async (req, res) => {
     }
     let searchObj = Object.assign({}, searchArray);
 
+    console.log(searchObj);
+
     const results = {};
     if (endIndex < (await NFT.countDocuments(searchObj).exec())) {
       results.next = {
@@ -672,31 +789,10 @@ controllers.viewNFTs = async (req, res) => {
     }
 
     await NFT.find(searchObj)
+      .populate("collectionID")
+      .populate("categoryID")
+      .populate("brandID")
       .sort({ createdOn: -1 })
-      .select({
-        name: 1,
-        type: 1,
-        image: 1,
-        price: 1,
-        description: 1,
-        collectionID: 1,
-        tokenID: 1,
-        assetsInfo: 1,
-        attributes: 1,
-        levels: 1,
-        totalQuantity: 1,
-        ownedBy: 1,
-        properties: 1,
-        hash: 1,
-        isMinted: 1,
-        categoryID: 1,
-        brandID: 1,
-        createdBy: 1,
-        createdOn: 1,
-        lastUpdatedBy: 1,
-        lastUpdatedOn: 1,
-        lazyMintingStatus: 1,
-      })
       .limit(limit)
       .skip(startIndex)
       .lean()
