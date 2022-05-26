@@ -1,6 +1,6 @@
-const mongoose=require("mongoose");
+const mongoose = require("mongoose");
 
-const collectionSchema=mongoose.Schema({
+const collectionSchema = mongoose.Schema({
   name: {
     type: String,
     require: true,
@@ -10,17 +10,20 @@ const collectionSchema=mongoose.Schema({
     enum: [0, 1],
     default: 0,
   },
+  symbol: {
+    type: String,
+  },
   logoImage: {
     type: String,
-    require: true
+    require: true,
   },
   coverImage: {
     type: String,
-    require: true
+    require: true,
   },
   description: {
     type: String,
-    require: true
+    require: true,
   },
   categoryID: {
     type: mongoose.Schema.ObjectId,
@@ -37,28 +40,28 @@ const collectionSchema=mongoose.Schema({
     lowercase: true,
   },
   chainID: {
-    type: String
+    type: String,
   },
   price: { type: mongoose.Types.Decimal128, default: 0 },
   royalityPercentage: { type: Number, default: 0 },
   salesCount: {
     type: Number,
-    default: 0
+    default: 0,
   },
   nftCount: {
     type: Number,
-    default: 0
+    default: 0,
   },
   volumeTraded: {
     type: Number,
-    default: 0
+    default: 0,
   },
   preSaleStartTime: {
     type: Date,
   },
   totalSupply: {
     type: Number,
-    default: 0
+    default: 0,
   },
   nextID: {
     type: Number,
@@ -92,8 +95,8 @@ const collectionSchema=mongoose.Schema({
     default: Date.now,
   },
 });
-collectionSchema.methods.getNextID=function() {
-  let nextIDDD=this.nextID+1;
+collectionSchema.methods.getNextID = function () {
+  let nextIDDD = this.nextID + 1;
   return nextIDDD;
 };
-module.exports = mongoose.model("Collection",collectionSchema);
+module.exports = mongoose.model("Collection", collectionSchema);

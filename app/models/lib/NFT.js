@@ -28,7 +28,7 @@ const nftSchema = mongoose.Schema({
       },
       dimension: {
         type: String,
-      }
+      },
     },
   ],
   attributes: [
@@ -38,7 +38,7 @@ const nftSchema = mongoose.Schema({
       },
       value: {
         type: String,
-      }
+      },
     },
   ],
   levels: [
@@ -48,7 +48,7 @@ const nftSchema = mongoose.Schema({
       },
       value: {
         type: String,
-      }
+      },
     },
   ],
   totalQuantity: Number,
@@ -66,12 +66,12 @@ const nftSchema = mongoose.Schema({
   hash: {
     type: String,
     require: true,
-    unique:true,
+    unique: true,
   },
   isMinted: {
     type: Number,
     default: 0,
-    enum: [0, 1, 2],
+    enum: [0, 1],
   },
   categoryID: {
     type: mongoose.Schema.ObjectId,
@@ -81,9 +81,16 @@ const nftSchema = mongoose.Schema({
     type: mongoose.Schema.ObjectId,
     ref: "Brand",
   },
-  user_likes: [{
-    type: mongoose.Schema.ObjectId
-  }],
+  lazyMintingStatus: {
+    type: Number,
+    default: 0,
+    enum: [0, 1, 2],
+  },
+  user_likes: [
+    {
+      type: mongoose.Schema.ObjectId,
+    },
+  ],
   createdBy: {
     type: mongoose.Schema.ObjectId,
     ref: "User",
