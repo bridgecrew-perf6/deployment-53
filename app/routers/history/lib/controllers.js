@@ -16,19 +16,19 @@ const controllers = {};
 controllers.insertHistory = async (req, res) => {
   console.log("req", req.body);
   try {
-    let nftId = req.body.nftId;
+    let nftID = req.body.nftID;
     let userId = req.body.userId;
     let action = req.body.action;
-    let actionMeta = req.body.actionMeta;
+    let type = req.body.type;
     let message = req.body.message;
-    let created_ts = req.body.createdBy;
+    let createdBy = req.body.createdBy;
     const insertData = new History({
-      nftId: nftId,
+      nftID: nftID,
       userId: userId,
       action: action,
-      actionMeta: actionMeta,
+      type: type,
       message: message,
-      sCreated: created_ts
+      createdBy: createdBy
     });
     console.log("Insert Data is " +insertData);
     insertData.save().then(async (result) => {
@@ -46,10 +46,10 @@ controllers.fetchHistory = async (req, res) => {
   console.log("req", req.body);
   try {
     let data = [];
-    let nftId = req.body.nftId;
+    let nftID = req.body.nftID;
     let userId = req.body.userId;
     let action = req.body.action;
-    let actionMeta = req.body.actionMeta;
+    let type = req.body.type;
 
     const page = parseInt(req.body.page);
     const limit = parseInt(req.body.limit);
@@ -60,12 +60,12 @@ controllers.fetchHistory = async (req, res) => {
     let onftIDQuery = {};
     let ouserIDQuery = {};
     let oactionQuery = {};
-    let oactionMetaQuery = {};
+    let otypeQuery = {};
     let SearchArray = [];
     let filters = [];
-    if (nftId != "All") {
-      onftIDQuery = { nftId: mongoose.Types.ObjectId(nftId) };
-      SearchArray["nftId"] = mongoose.Types.ObjectId(nftId);
+    if (nftID != "All") {
+      onftIDQuery = { nftID: mongoose.Types.ObjectId(nftID) };
+      SearchArray["nftID"] = mongoose.Types.ObjectId(nftID);
     }
     if (userId != "All") {
       ouserIDQuery = { userId: mongoose.Types.ObjectId(userId) };
@@ -75,9 +75,9 @@ controllers.fetchHistory = async (req, res) => {
       oactionQuery = { action: action };
       SearchArray["action"] = action;
     }
-    if (actionMeta != "All") {
-      oactionMetaQuery = { actionMeta: actionMeta };
-      SearchArray["actionMeta"] = actionMeta;
+    if (type != "All") {
+      otypeQuery = { type: type };
+      SearchArray["type"] = type;
     }
     let SearchObj = Object.assign({}, SearchArray);
     console.log(SearchObj);
@@ -101,10 +101,10 @@ controllers.fetchHistory = async (req, res) => {
       .sort({ sCreated: -1 })
       .select({
         _id: 1,
-        nftId: 1,
+        nftID: 1,
         userId: 1,
         action: 1,
-        actionMeta: 1,
+        type: 1,
         message: 1,
         sCreated: 1
       }).limit(limit)
