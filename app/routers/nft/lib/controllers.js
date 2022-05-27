@@ -330,28 +330,7 @@ controllers.viewCollection = async (req, res) => {
       path: "createdBy",
       options: {
         limit: 1,
-      },
-      select: {
-        name: 1,
-        type: 1,
-        logoImage: 1,
-        coverImage: 1,
-        description: 1,
-        categoryID: 1,
-        symbol: 1,
-        brandID: 1,
-        contractAddress: 1,
-        chainID: 1,
-        salesCount: 1,
-        nftCount: 1,
-        volumeTraded: 1,
-        preSaleStartTime: 1,
-        totalSupply: 1,
-        createdBy: 1,
-        createdOn: 1,
-        lastUpdatedBy: 1,
-        lastUpdatedOn: 1,
-      },
+      }
     });
 
     if (!collectionData) return res.reply(messages.not_found("Collection"));
