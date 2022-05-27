@@ -112,6 +112,7 @@ controllers.createCollection = async (req, res) => {
           brandID: req.body.brandID,
           chainID: req.body.chainID,
           preSaleStartTime: req.body.preSaleStartTime,
+          preSaleEndTime: req.body.preSaleEndTime,
           totalSupply: req.body.totalSupply,
           nextId: 0,
           price: req.body.price,
