@@ -177,6 +177,10 @@ controllers.getCollections = async (req, res) => {
     if(req.body.isHotCollection && req.body.isHotCollection !== undefined){
       isHotCollection = req.body.isHotCollection;
     }
+    let isExclusive = "";
+    if(req.body.isExclusive && req.body.isExclusive !== undefined){
+      isExclusive = req.body.isExclusive;
+    }
 
     let searchArray = [];
     if (collectionID !== "") {
@@ -196,6 +200,9 @@ controllers.getCollections = async (req, res) => {
     }
     if (isHotCollection !== "") {
       searchArray["isHotCollection"] = isHotCollection;
+    }
+    if (isExclusive !== "") {
+      searchArray["isExclusive"] = isExclusive;
     }
     if (ERCType !== "") {
       searchArray["type"] = ERCType;

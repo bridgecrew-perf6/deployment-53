@@ -27,7 +27,7 @@ controllers.createOrder = async (req, res) => {
       nftId: req.body.nftId,
       tokenID: req.body.tokenId,
       tokenAddress: req.body.collection,
-      quantity: req.body.quantity,
+      total_quantity: req.body.quantity,
       salesType: req.body.saleType,
       paymentToken: req.body.tokenAddress,
       price: req.body.price,
@@ -52,40 +52,37 @@ controllers.createOrder = async (req, res) => {
     return res.reply(messages.server_error());
   }
 };
-
 controllers.deleteOrder = async (req, res) => {
   try {
     if (!req.userId) return res.reply(messages.unauthorized());
     await Order.find({ _id: req.body.orderId }).remove().exec();
-    await Bid.find({ oOrderId: req.body.orderId, oBidStatus: "Bid" })
-      .remove()
-      .exec();
+    await Bid.find({ orderID: req.body.orderId, bidStatus: "Bid" }).remove().exec();
 
     return res.reply(messages.deleted("order"));
   } catch (err) {
     return res.reply(messages.error(), err.message);
   }
 };
-
 controllers.updateOrder = async (req, res) => {
   try {
-    console.log("req---->", req.body);
-    let lazyMintingStatus = Number(req.body.LazyMintingStatus);
+    if (!req.userId) return res.reply(messages.unauthorized());
+    
+    let lazyMintingStatus = Number(req.body.lazyMintingStatus);
     if (lazyMintingStatus === 0) {
       lazyMintingStatus = 0;
     } else if (lazyMintingStatus === 1 || lazyMintingStatus === 2) {
       lazyMintingStatus = 2;
     }
-    if (!req.userId) return res.reply(messages.unauthorized());
-    if (!req.body.oNftId)
-      return res.reply(messages.bad_request(), "oNftId is required.");
-    else
+    
+    if (!req.body.nftID){
+      return res.reply(messages.bad_request(), "NFTID is required.");
+    }else{
       await Order.updateOne(
         { _id: req.body.orderId },
         {
           $set: {
-            oStatus: req.body.oStatus,
-            quantity_sold: req.body.qty_sold,
+            status: req.body.status,
+            quantity_sold: req.body.quantity_sold,
           },
         },
         {
@@ -95,25 +92,24 @@ controllers.updateOrder = async (req, res) => {
           if (err) throw error;
         }
       );
+    }
+    let NFTData = await NFT.findOne({
+      _id: mongoose.Types.ObjectId(req.body.nftID),
+      "ownedBy.address": req.body.oSeller,
+    }).select("ownedBy -_id");
 
-    //deduct previous owner
-    let _NFT = await NFT.findOne({
-      _id: mongoose.Types.ObjectId(req.body.oNftId),
-      "nOwnedBy.address": req.body.oSeller,
-    }).select("nOwnedBy -_id");
-
-    console.log("_NFT-------->", _NFT);
-    let currentQty = _NFT.nOwnedBy.find(
-      (o) => o.address === req.body.oSeller.toLowerCase()
+    console.log("NFTData-------->", NFTData);
+    let currentQty = NFTData.ownedBy.find(
+      (o) => o.address === req.body.seller.toLowerCase()
     ).quantity;
-    let boughtQty = parseInt(req.body.oQtyBought);
+    let boughtQty = parseInt(req.body.qtyBought);
     let leftQty = currentQty - boughtQty;
     if (leftQty < 1) {
       await NFT.findOneAndUpdate(
-        { _id: mongoose.Types.ObjectId(req.body.oNftId) },
+        { _id: mongoose.Types.ObjectId(req.body.nftID) },
         {
           $pull: {
-            nOwnedBy: { address: req.body.oSeller },
+            ownedBy: { address: req.body.seller },
           },
         }
       ).catch((e) => {
@@ -122,12 +118,12 @@ controllers.updateOrder = async (req, res) => {
     } else {
       await NFT.findOneAndUpdate(
         {
-          _id: mongoose.Types.ObjectId(req.body.oNftId),
-          "nOwnedBy.address": req.body.oSeller,
+          _id: mongoose.Types.ObjectId(req.body.nftID),
+          "ownedBy.address": req.body.seller,
         },
         {
           $set: {
-            "nOwnedBy.$.quantity": parseInt(leftQty),
+            "ownedBy.$.quantity": parseInt(leftQty),
           },
         }
       ).catch((e) => {
@@ -139,42 +135,42 @@ controllers.updateOrder = async (req, res) => {
     console.log("Crediting Buyer");
 
     let subDocId = await NFT.exists({
-      _id: mongoose.Types.ObjectId(req.body.oNftId),
-      "nOwnedBy.address": req.body.oBuyer,
+      _id: mongoose.Types.ObjectId(req.body.nftID),
+      "ownedBy.address": req.body.buyer,
     });
     if (subDocId) {
       console.log("Subdocument Id", subDocId);
 
-      let _NFTB = await NFT.findOne({
-        _id: mongoose.Types.ObjectId(req.body.oNftId),
-        "nOwnedBy.address": req.body.oBuyer,
-      }).select("nOwnedBy -_id");
-      console.log("_NFTB-------->", _NFTB);
+      let NFTData_Buyer = await NFT.findOne({
+        _id: mongoose.Types.ObjectId(req.body.nftID),
+        "ownedBy.address": req.body.buyer,
+      }).select("ownedBy -_id");
+      console.log("NFTData_Buyer-------->", NFTData_Buyer);
       console.log(
         "Quantity found for buyers",
-        _NFTB.nOwnedBy.find((o) => o.address === req.body.oBuyer.toLowerCase())
+        NFTData_Buyer.ownedBy.find((o) => o.address === req.body.buyer.toLowerCase())
           .quantity
       );
-      currentQty = _NFTB.nOwnedBy.find(
-        (o) => o.address === req.body.oBuyer.toLowerCase()
+      currentQty = NFTData_Buyer.ownedBy.find(
+        (o) => o.address === req.body.buyer.toLowerCase()
       ).quantity
         ? parseInt(
-            _NFTB.nOwnedBy.find(
-              (o) => o.address === req.body.oBuyer.toLowerCase()
-            ).quantity
-          )
+          NFTData_Buyer.ownedBy.find(
+            (o) => o.address === req.body.buyer.toLowerCase()
+          ).quantity
+        )
         : 0;
-      boughtQty = req.body.oQtyBought;
+      boughtQty = req.body.qtyBought;
       let ownedQty = currentQty + boughtQty;
 
       await NFT.findOneAndUpdate(
         {
-          _id: mongoose.Types.ObjectId(req.body.oNftId),
-          "nOwnedBy.address": req.body.oBuyer,
+          _id: mongoose.Types.ObjectId(req.body.nftID),
+          "ownedBy.address": req.body.buyer,
         },
         {
           $set: {
-            "nOwnedBy.$.quantity": parseInt(ownedQty),
+            "ownedBy.$.quantity": parseInt(ownedQty),
           },
         },
         { upsert: true, runValidators: true }
@@ -184,22 +180,22 @@ controllers.updateOrder = async (req, res) => {
     } else {
       console.log("Subdocument Id not found");
       let dataToadd = {
-        address: req.body.oBuyer,
-        quantity: parseInt(req.body.oQtyBought),
+        address: req.body.buyer,
+        quantity: parseInt(req.body.qtyBought),
       };
       await NFT.findOneAndUpdate(
-        { _id: mongoose.Types.ObjectId(req.body.oNftId) },
-        { $addToSet: { nOwnedBy: dataToadd } },
+        { _id: mongoose.Types.ObjectId(req.body.nftID) },
+        { $addToSet: { ownedBy: dataToadd } },
 
         { upsert: true }
       );
       console.log("wasn't there but added");
     }
     await NFT.findOneAndUpdate(
-      { _id: mongoose.Types.ObjectId(req.body.oNftId) },
+      { _id: mongoose.Types.ObjectId(req.body.nftID) },
       {
         $set: {
-          nLazyMintingStatus: Number(lazyMintingStatus),
+          lazyMintingStatus: Number(lazyMintingStatus),
         },
       }
     ).catch((e) => {
@@ -210,7 +206,6 @@ controllers.updateOrder = async (req, res) => {
     return res.reply(messages.error(), error.message);
   }
 };
-
 controllers.getOrder = (req, res) => {
   try {
     Order.findOne({ _id: req.body.orderId }, (err, order) => {
@@ -222,40 +217,22 @@ controllers.getOrder = (req, res) => {
     return res.reply(messages.server_error());
   }
 };
-
 controllers.getOrdersByNftId = async (req, res) => {
   try {
-    //sample request
-    //   {
-    //     "nftId": "622191c2eea58614558fd2e7",
-    //     "sortKey": "oTokenId",
-    //     "sortType": -1,
-    //     "page": 2,
-    //     "limit": 1
-    // }
-
-    //sortKey is the column
-    const sortKey = req.body.sortKey ? req.body.sortKey : oPrice;
-
-    //sortType will let you choose from ASC 1 or DESC -1
+    const sortKey = req.body.sortKey ? req.body.sortKey : price;
     const sortType = req.body.sortType ? req.body.sortType : -1;
-
     var sortObject = {};
     var stype = sortKey;
     var sdir = sortType;
     sortObject[stype] = sdir;
-
     const page = parseInt(req.body.page);
     const limit = parseInt(req.body.limit);
-
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
-
     const results = {};
-
     if (
       endIndex <
-      (await Order.count({ oNftId: req.body.nftId, oStatus: 1 }).exec())
+      (await Order.count({ nftID: req.body.nftId, status: 1 }).exec())
     ) {
       results.next = {
         page: page + 1,
@@ -271,8 +248,8 @@ controllers.getOrdersByNftId = async (req, res) => {
     }
 
     let AllOrders = await Order.find({
-      oNftId: req.body.nftId,
-      oStatus: 1,
+      nftID: req.body.nftId,
+      status: 1,
     })
       .sort(sortObject)
       .limit(limit)
@@ -285,5 +262,4 @@ controllers.getOrdersByNftId = async (req, res) => {
     return res.reply(messages.server_error(), error.message);
   }
 };
-
 module.exports = controllers;
