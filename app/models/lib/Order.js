@@ -17,17 +17,14 @@ const orderSchema = mongoose.Schema({
     type: Number,
     enum: [0, 1], // 0-Fixed Sale 1-Timed Auction
   },
-  quantity: {
-    address: {
-      type: String,
-      lowercase: true,
-    },
-    quantity: {
-      type: Number,
-    },
-  },
-  price: {
+  total_quantity: {
     type: Number,
+  },
+  quantity_sold: {
+    type: Number,
+  },
+  price: { 
+    type: mongoose.Types.Decimal128 
   },
   tokenID: {
     type: String,
@@ -50,6 +47,11 @@ const orderSchema = mongoose.Schema({
   },
   bundleTokens: Array,
   bundleTokensQuantities: Array,
+  status : {
+    type: Number,
+    default: 0,
+    enum: [0, 1],
+  },
   createdBy: {
     type: mongoose.Schema.ObjectId,
     ref: "User",

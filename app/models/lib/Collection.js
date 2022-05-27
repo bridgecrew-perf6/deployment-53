@@ -78,6 +78,11 @@ const collectionSchema = mongoose.Schema({
     default: 0,
     enum: [0, 1],
   },
+  isExclusive: {
+    type: Number,
+    default: 0,
+    enum: [0, 1],
+  },
   createdBy: {
     type: mongoose.Schema.ObjectId,
     ref: "User",
