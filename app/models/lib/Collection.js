@@ -59,6 +59,9 @@ const collectionSchema = mongoose.Schema({
   preSaleStartTime: {
     type: Date,
   },
+  preSaleEndTime: {
+    type: Date,
+  },
   totalSupply: {
     type: Number,
     default: 0,
