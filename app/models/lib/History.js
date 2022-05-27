@@ -25,11 +25,18 @@ const historySchema = new mongoose.Schema({
     type: mongoose.Schema.ObjectId,
     ref: "User",
   },
+  action : { 
+    type: String,
+    enum: ["Put on Sale","Remove from Sale"],
+  },
   type : { 
     type: String,
     enum: ["Bid", "Cancelled", "Accepted", "Sold", "Rejected", "MakeOffer", "AcceptOffer", "RejectOffer", "CancelledOffer"],
   },
   quantity: Number,
+  message: {
+    type: String,
+  },
   price: {
     type: mongoose.Types.Decimal128,
     required: true,

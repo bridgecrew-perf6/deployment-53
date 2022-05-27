@@ -10,20 +10,20 @@ controllers.createBidNft = async (req, res) => {
     if (!req.userId) return res.reply(messages.unauthorized());
     console.log("Checking Old Bids");
     let CheckBid = await Bid.findOne({
-      oBidder: mongoose.Types.ObjectId(req.userId),
-      oOwner: mongoose.Types.ObjectId(req.body.oOwner),
-      oNFTId: mongoose.Types.ObjectId(req.body.oNFTId),
-      oOrderId: mongoose.Types.ObjectId(req.body.oOrderId),
-      oBidStatus: "Bid",
+      bidderID: mongoose.Types.ObjectId(req.userId),
+      owner: mongoose.Types.ObjectId(req.body.owner),
+      nftID: mongoose.Types.ObjectId(req.body.nftID),
+      orderID: mongoose.Types.ObjectId(req.body.orderID),
+      bidStatus: "Bid",
     });
     if (CheckBid) {
       await Bid.findOneAndDelete(
         {
-          oBidder: mongoose.Types.ObjectId(req.userId),
-          oOwner: mongoose.Types.ObjectId(req.body.oOwner),
-          oNFTId: mongoose.Types.ObjectId(req.body.oNFTId),
-          oOrderId: mongoose.Types.ObjectId(req.body.oOrderId),
-          oBidStatus: "Bid",
+          bidderID: mongoose.Types.ObjectId(req.userId),
+          owner: mongoose.Types.ObjectId(req.body.owner),
+          nftID: mongoose.Types.ObjectId(req.body.nftID),
+          orderID: mongoose.Types.ObjectId(req.body.orderID),
+          bidStatus: "Bid",
         },
         function (err, bidDel) {
           if (err) {
@@ -35,15 +35,15 @@ controllers.createBidNft = async (req, res) => {
       );
     }
     const bidData = new Bid({
-      oBidder: req.userId,
-      oOwner: req.body.oOwner,
-      oBidStatus: "Bid",
-      oBidPrice: req.body.oBidPrice,
-      oNFTId: req.body.oNFTId,
-      oOrderId: req.body.oOrderId,
-      oBidQuantity: req.body.oBidQuantity,
-      oBuyerSignature: req.body.oBuyerSignature,
-      oBidDeadline: req.body.oBidDeadline,
+      bidderID: req.userId,
+      owner: req.body.owner,
+      bidStatus: "Bid",
+      bidPrice: req.body.bidPrice,
+      nftID: req.body.nftID,
+      orderID: req.body.orderID,
+      bidQuantity: req.body.bidQuantity,
+      buyerSignature: req.body.buyerSignature,
+      bidDeadline: req.body.bidDeadline,
     });
     bidData
       .save()
@@ -84,7 +84,7 @@ controllers.updateBidNft = async (req, res) => {
       } else {
         await Bid.findOneAndUpdate(
           { _id: mongoose.Types.ObjectId(bidID) },
-          { oBidStatus: req.body.action },
+          { bidStatus: req.body.action },
           function (err, rejBid) {
             if (err) {
               console.log("Error in Rejecting Bid" + err);
@@ -110,27 +110,27 @@ controllers.fetchBidNft = async (req, res) => {
   console.log("req", req.body);
   try {
     if (!req.userId) return res.reply(messages.unauthorized());
-    let nftID = req.body.nNFTId;
+    let nftID = req.body.nftID;
     let orderID = req.body.orderID;
     let buyerID = req.body.buyerID;
     let bidStatus = req.body.bidStatus;
     let oTypeQuery = {};
-    let onftIDQuery = {};
-    let oorderIDQuery = {};
-    let obuyerIDQuery = {};
+    let nftIDQuery = {};
+    let orderIDQuery = {};
+    let buyerIDQuery = {};
 
     let filters = [];
     if (bidStatus != "All") {
-      oTypeQuery = { oBidStatus: mongoose.Types.ObjectId(bidStatus) };
+      oTypeQuery = { bidStatus: mongoose.Types.ObjectId(bidStatus) };
     }
     if (nftID != "All") {
-      onftIDQuery = { oNFTId: mongoose.Types.ObjectId(nftID) };
+      nftIDQuery = { nftID: mongoose.Types.ObjectId(nftID) };
     }
     if (orderID != "All") {
-      oorderIDQuery = { oOrderId: mongoose.Types.ObjectId(orderID) };
+      orderIDQuery = { orderID: mongoose.Types.ObjectId(orderID) };
     }
     if (buyerID != "All") {
-      obuyerIDQuery = { oBidder: mongoose.Types.ObjectId(buyerID) };
+      buyerIDQuery = { bidderID: mongoose.Types.ObjectId(buyerID) };
     }
     console.log(filters);
     let data = await Bid.aggregate([
@@ -138,42 +138,42 @@ controllers.fetchBidNft = async (req, res) => {
         $match: {
           $and: [
             { oBidQuantity: { $gte: 1 } },
-            { oBidStatus: "Bid" },
+            { bidStatus: "Bid" },
             oTypeQuery,
-            onftIDQuery,
-            oorderIDQuery,
-            obuyerIDQuery,
+            nftIDQuery,
+            orderIDQuery,
+            buyerIDQuery,
           ],
         },
       },
       {
         $project: {
           _id: 1,
-          oBidder: 1,
-          oOwner: 1,
-          oBidStatus: 1,
+          bidderID: 1,
+          owner: 1,
+          bidStatus: 1,
           oBidPrice: 1,
-          oNFTId: 1,
-          oOrderId: 1,
+          nftID: 1,
+          orderID: 1,
           oBidQuantity: 1,
-          oBuyerSignature: 1,
+          buyerSignature: 1,
           oBidDeadline: 1,
         },
       },
       {
         $lookup: {
           from: "users",
-          localField: "oBidder",
+          localField: "bidderID",
           foreignField: "_id",
-          as: "oBidder",
+          as: "bidderID",
         },
       },
       {
         $lookup: {
           from: "users",
-          localField: "oOwner",
+          localField: "owner",
           foreignField: "_id",
-          as: "oOwner",
+          as: "owner",
         },
       },
       {
@@ -181,8 +181,8 @@ controllers.fetchBidNft = async (req, res) => {
           sCreated: -1,
         },
       },
-      { $unwind: "$oBidder" },
-      { $unwind: "$oOwner" },
+      { $unwind: "$bidderID" },
+      { $unwind: "$owner" },
       {
         $facet: {
           bids: [
@@ -228,27 +228,27 @@ controllers.acceptBidNft = async (req, res) => {
       return res.reply(messages.bad_request(), "Bid is required.");
 
     console.log("Checking Old Bids");
-    let erc721 = req.body.erc721;
+    let ERC721 = req.body.ERC721;
     let bidID = req.body.bidID;
     let status = req.body.status;
     let qty_sold = req.body.qty_sold;
     let BidData = await Bid.findById(bidID);
     if (BidData) {
-      let oNFTId = BidData.oNFTId;
-      let orderId = BidData.oOrderId;
+      let nftID = BidData.nftID;
+      let orderId = BidData.orderID;
       let boughtQty = parseInt(BidData.oBidQuantity);
-      let oBidder = BidData.oBidder;
-      let BuyerData = await User.findById(oBidder);
-      let oBuyer = BuyerData.sWalletAddress;
-      let oOwner = BidData.oOwner;
-      let OwnerData = await User.findById(oOwner);
-      let oSeller = OwnerData.sWalletAddress;
+      let bidderID = BidData.bidderID;
+      let BuyerData = await User.findById(bidderID);
+      let buyer = BuyerData.walletAddress;
+      let owner = BidData.owner;
+      let OwnerData = await User.findById(owner);
+      let seller = OwnerData.walletAddress;
 
       await Order.updateOne(
         { _id: orderId },
         {
           $set: {
-            oStatus: status,
+            status: status,
             quantity_sold: qty_sold,
           },
         },
@@ -262,21 +262,21 @@ controllers.acceptBidNft = async (req, res) => {
       //deduct previous owner
 
       let _NFT = await NFT.findOne({
-        _id: mongoose.Types.ObjectId(oNFTId),
-        "nOwnedBy.address": oSeller,
+        _id: mongoose.Types.ObjectId(nftID),
+        "nOwnedBy.address": seller,
       }).select("nOwnedBy -_id");
       console.log("_NFT-------->", _NFT);
       let currentQty = _NFT.nOwnedBy.find(
-        (o) => o.address === oSeller.toLowerCase()
+        (o) => o.address === seller.toLowerCase()
       ).quantity;
 
       let leftQty = currentQty - boughtQty;
       if (leftQty < 1) {
         await NFT.findOneAndUpdate(
-          { _id: mongoose.Types.ObjectId(oNFTId) },
+          { _id: mongoose.Types.ObjectId(nftID) },
           {
             $pull: {
-              nOwnedBy: { address: oSeller },
+              nOwnedBy: { address: seller },
             },
           }
         ).catch((e) => {
@@ -285,8 +285,8 @@ controllers.acceptBidNft = async (req, res) => {
       } else {
         await NFT.findOneAndUpdate(
           {
-            _id: mongoose.Types.ObjectId(oNFTId),
-            "nOwnedBy.address": oSeller,
+            _id: mongoose.Types.ObjectId(nftID),
+            "nOwnedBy.address": seller,
           },
           {
             $set: {
@@ -300,27 +300,27 @@ controllers.acceptBidNft = async (req, res) => {
       //Credit the buyer
       console.log("Crediting Buyer");
       let subDocId = await NFT.exists({
-        _id: mongoose.Types.ObjectId(oNFTId),
-        "nOwnedBy.address": oBuyer,
+        _id: mongoose.Types.ObjectId(nftID),
+        "nOwnedBy.address": buyer,
       });
       if (subDocId) {
         console.log("Subdocument Id", subDocId);
-        let _NFTB = await NFT.findOne({
-          _id: mongoose.Types.ObjectId(oNFTId),
-          "nOwnedBy.address": oBuyer,
+        let NFTNewData = await NFT.findOne({
+          _id: mongoose.Types.ObjectId(nftID),
+          "nOwnedBy.address": buyer,
         }).select("nOwnedBy -_id");
-        console.log("_NFTB-------->", _NFTB);
+        console.log("NFTNewData-------->", NFTNewData);
         console.log(
           "Quantity found for buyers",
-          _NFTB.nOwnedBy.find((o) => o.address === oBuyer.toLowerCase())
+          NFTNewData.nOwnedBy.find((o) => o.address === buyer.toLowerCase())
             .quantity
         );
 
-        currentQty = _NFTB.nOwnedBy.find(
-          (o) => o.address === oBuyer.toLowerCase()
+        currentQty = NFTNewData.nOwnedBy.find(
+          (o) => o.address === buyer.toLowerCase()
         ).quantity
           ? parseInt(
-              _NFTB.nOwnedBy.find((o) => o.address === oBuyer.toLowerCase())
+              NFTNewData.nOwnedBy.find((o) => o.address === buyer.toLowerCase())
                 .quantity
             )
           : 0;
@@ -328,8 +328,8 @@ controllers.acceptBidNft = async (req, res) => {
         let ownedQty = currentQty + boughtQty;
         await NFT.findOneAndUpdate(
           {
-            _id: mongoose.Types.ObjectId(oNFTId),
-            "nOwnedBy.address": oBuyer,
+            _id: mongoose.Types.ObjectId(nftID),
+            "nOwnedBy.address": buyer,
           },
           {
             $set: {
@@ -343,11 +343,11 @@ controllers.acceptBidNft = async (req, res) => {
       } else {
         console.log("Subdocument Id not found");
         let dataToadd = {
-          address: oBuyer,
+          address: buyer,
           quantity: parseInt(boughtQty),
         };
         await NFT.findOneAndUpdate(
-          { _id: mongoose.Types.ObjectId(oNFTId) },
+          { _id: mongoose.Types.ObjectId(nftID) },
           { $addToSet: { nOwnedBy: dataToadd } },
           { upsert: true }
         );
@@ -358,7 +358,7 @@ controllers.acceptBidNft = async (req, res) => {
         {
           _id: mongoose.Types.ObjectId(bidID),
         },
-        { oBidStatus: "Accepted" },
+        { bidStatus: "Accepted" },
         function (err, acceptBid) {
           if (err) {
             console.log("Error in Accepting Bid" + err);
@@ -368,11 +368,11 @@ controllers.acceptBidNft = async (req, res) => {
           }
         }
       );
-      if (erc721) {
+      if (ERC721) {
         await Bid.deleteMany({
-          oOwner: mongoose.Types.ObjectId(oOwner),
-          oNFTId: mongoose.Types.ObjectId(oNFTId),
-          oBidStatus: "Bid",
+          owner: mongoose.Types.ObjectId(owner),
+          nftID: mongoose.Types.ObjectId(nftID),
+          bidStatus: "Bid",
         })
           .then(function () {
             console.log("Data deleted");
@@ -390,9 +390,9 @@ controllers.acceptBidNft = async (req, res) => {
         }
         console.log("left qty 1155", leftQty);
         await Bid.deleteMany({
-          oOwner: mongoose.Types.ObjectId(oOwner),
-          oNFTId: mongoose.Types.ObjectId(oNFTId),
-          oBidStatus: "Bid",
+          owner: mongoose.Types.ObjectId(owner),
+          nftID: mongoose.Types.ObjectId(nftID),
+          bidStatus: "Bid",
           oBidQuantity: { $gt: leftQty },
         })
           .then(function () {
