@@ -730,7 +730,7 @@ controllers.viewNFTs = async (req, res) => {
       isMinted = req.body.isMinted;
     }
     let isLazyMinted = "";
-    if (req.body.isLazyMinted && req.body.isLazyMinted !== undefined) {
+    if (req.body.isLazyMinted !== undefined) {
       isLazyMinted = req.body.isLazyMinted;
     }
 
@@ -762,8 +762,8 @@ controllers.viewNFTs = async (req, res) => {
     }
     console.log("isLazyMinted == 1", isLazyMinted == 1);
     if (isLazyMinted !== "") {
-      if (isLazyMinted == 1) searchArray["lazyMintingStatus"] = 1;
-      else if(isLazyMinted == 0) searchArray["lazyMintingStatus"] = 0;
+      if (isLazyMinted == true) searchArray["lazyMintingStatus"] = 1;
+      else searchArray["lazyMintingStatus"] = 0;
     }
 
     let searchObj = Object.assign({}, searchArray);
