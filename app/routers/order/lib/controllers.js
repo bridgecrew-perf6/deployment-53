@@ -22,12 +22,14 @@ controllers.createOrder = async (req, res) => {
 
     let orderDate = new Date().setFullYear(new Date().getFullYear() + 10);
     let validity = Math.floor(orderDate / 1000);
-
+    console.log("nft req", req.body);
     const order = new Order({
-      nftId: req.body.nftId,
+      nftID: req.body.nftId,
       tokenID: req.body.tokenId,
       tokenAddress: req.body.collection,
       total_quantity: req.body.quantity,
+      deadline: req.body.deadline,
+      deadlineDate: req.body.deadlineDate,
       salesType: req.body.saleType,
       paymentToken: req.body.tokenAddress,
       price: req.body.price,
@@ -36,7 +38,6 @@ controllers.createOrder = async (req, res) => {
       bundleTokens: [],
       bundleTokensQuantities: [],
       sellerID: req.userId,
-      deadline: req.body.auctionEndDate,
     });
 
     order
@@ -56,7 +57,9 @@ controllers.deleteOrder = async (req, res) => {
   try {
     if (!req.userId) return res.reply(messages.unauthorized());
     await Order.find({ _id: req.body.orderId }).remove().exec();
-    await Bid.find({ orderID: req.body.orderId, bidStatus: "Bid" }).remove().exec();
+    await Bid.find({ orderID: req.body.orderId, bidStatus: "Bid" })
+      .remove()
+      .exec();
 
     return res.reply(messages.deleted("order"));
   } catch (err) {
@@ -66,22 +69,21 @@ controllers.deleteOrder = async (req, res) => {
 controllers.updateOrder = async (req, res) => {
   try {
     if (!req.userId) return res.reply(messages.unauthorized());
-    
-    let lazyMintingStatus = Number(req.body.lazyMintingStatus);
+
+    let lazyMintingStatus = Number(req.body.LazyMintingStatus);
     if (lazyMintingStatus === 0) {
       lazyMintingStatus = 0;
     } else if (lazyMintingStatus === 1 || lazyMintingStatus === 2) {
       lazyMintingStatus = 2;
     }
-    
-    if (!req.body.nftID){
+
+    if (!req.body.nftID) {
       return res.reply(messages.bad_request(), "NFTID is required.");
-    }else{
+    } else {
       await Order.updateOne(
         { _id: req.body.orderId },
         {
           $set: {
-            status: req.body.status,
             quantity_sold: req.body.quantity_sold,
           },
         },
@@ -148,17 +150,18 @@ controllers.updateOrder = async (req, res) => {
       console.log("NFTData_Buyer-------->", NFTData_Buyer);
       console.log(
         "Quantity found for buyers",
-        NFTData_Buyer.ownedBy.find((o) => o.address === req.body.buyer.toLowerCase())
-          .quantity
+        NFTData_Buyer.ownedBy.find(
+          (o) => o.address === req.body.buyer.toLowerCase()
+        ).quantity
       );
       currentQty = NFTData_Buyer.ownedBy.find(
         (o) => o.address === req.body.buyer.toLowerCase()
       ).quantity
         ? parseInt(
-          NFTData_Buyer.ownedBy.find(
-            (o) => o.address === req.body.buyer.toLowerCase()
-          ).quantity
-        )
+            NFTData_Buyer.ownedBy.find(
+              (o) => o.address === req.body.buyer.toLowerCase()
+            ).quantity
+          )
         : 0;
       boughtQty = req.body.qtyBought;
       let ownedQty = currentQty + boughtQty;
@@ -206,20 +209,24 @@ controllers.updateOrder = async (req, res) => {
     return res.reply(messages.error(), error.message);
   }
 };
+
 controllers.getOrder = (req, res) => {
   try {
     Order.findOne({ _id: req.body.orderId }, (err, order) => {
       if (err) return res.reply(messages.server_error());
       if (!order) return res.reply(messages.not_found("Order"));
       return res.reply(messages.no_prefix("Order Details"), order);
-    });
+    })
+      .populate("sellerID")
+      .populate("nftID");
   } catch (error) {
     return res.reply(messages.server_error());
   }
 };
+
 controllers.getOrdersByNftId = async (req, res) => {
   try {
-    const sortKey = req.body.sortKey ? req.body.sortKey : price;
+    const sortKey = req.body.sortKey ? req.body.sortKey : "price";
     const sortType = req.body.sortType ? req.body.sortType : -1;
     var sortObject = {};
     var stype = sortKey;
@@ -249,8 +256,8 @@ controllers.getOrdersByNftId = async (req, res) => {
 
     let AllOrders = await Order.find({
       nftID: req.body.nftId,
-      status: 1,
     })
+      .populate("sellerID")
       .sort(sortObject)
       .limit(limit)
       .skip(startIndex)

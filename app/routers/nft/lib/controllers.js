@@ -143,43 +143,43 @@ controllers.getCollections = async (req, res) => {
     const endIndex = page * limit;
 
     let collectionID = "";
-    if(req.body.collectionID && req.body.collectionID !== undefined){
+    if (req.body.collectionID && req.body.collectionID !== undefined) {
       collectionID = req.body.collectionID;
     }
     let userID = "";
-    if(req.body.userID && req.body.userID !== undefined){
+    if (req.body.userID && req.body.userID !== undefined) {
       userID = req.body.userID;
     }
     let categoryID = "";
-    if(req.body.categoryID && req.body.categoryID !== undefined){
+    if (req.body.categoryID && req.body.categoryID !== undefined) {
       categoryID = req.body.categoryID;
     }
     let brandID = "";
-    if(req.body.brandID && req.body.brandID !== undefined){
+    if (req.body.brandID && req.body.brandID !== undefined) {
       brandID = req.body.brandID;
     }
     let ERCType = "";
-    if(req.body.ERCType && req.body.ERCType !== undefined){
+    if (req.body.ERCType && req.body.ERCType !== undefined) {
       ERCType = req.body.ERCType;
     }
     let searchText = "";
-    if(req.body.searchText && req.body.searchText !== undefined){
+    if (req.body.searchText && req.body.searchText !== undefined) {
       searchText = req.body.searchText;
     }
     let filterString = "";
-    if(req.body.filterString && req.body.filterString !== undefined){
+    if (req.body.filterString && req.body.filterString !== undefined) {
       filterString = req.body.filterString;
     }
     let isMinted = "";
-    if(req.body.isMinted && req.body.isMinted !== undefined){
+    if (req.body.isMinted && req.body.isMinted !== undefined) {
       isMinted = req.body.isMinted;
     }
     let isHotCollection = "";
-    if(req.body.isHotCollection && req.body.isHotCollection !== undefined){
+    if (req.body.isHotCollection && req.body.isHotCollection !== undefined) {
       isHotCollection = req.body.isHotCollection;
     }
     let isExclusive = "";
-    if(req.body.isExclusive && req.body.isExclusive !== undefined){
+    if (req.body.isExclusive && req.body.isExclusive !== undefined) {
       isExclusive = req.body.isExclusive;
     }
 
@@ -218,7 +218,7 @@ controllers.getCollections = async (req, res) => {
       ];
     }
     let searchObj = Object.assign({}, searchArray);
-    console.log("Obj"+searchObj);
+    console.log("Obj" + searchObj);
     const results = {};
     if (endIndex < (await Collection.countDocuments(searchObj).exec())) {
       results.next = {
@@ -266,7 +266,7 @@ controllers.myCollections = async (req, res) => {
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
     let searchText = "";
-    if(req.body.searchText && req.body.searchText !== undefined){
+    if (req.body.searchText && req.body.searchText !== undefined) {
       searchText = req.body.searchText;
     }
 
@@ -331,7 +331,7 @@ controllers.viewCollection = async (req, res) => {
       path: "createdBy",
       options: {
         limit: 1,
-      }
+      },
     });
 
     if (!collectionData) return res.reply(messages.not_found("Collection"));
@@ -446,15 +446,15 @@ controllers.getUpcomingCollections = async (req, res) => {
     const endIndex = page * limit;
 
     let searchText = "";
-    if(req.body.searchText && req.body.searchText !== undefined){
+    if (req.body.searchText && req.body.searchText !== undefined) {
       searchText = req.body.searchText;
     }
     let searchArray = [];
-    searchArray["preSaleStartTime"] = {$lt: new Date()};
+    searchArray["preSaleStartTime"] = { $lt: new Date() };
     if (searchText !== "") {
       searchArray["or"] = [
-        { 'name': { $regex: new RegExp(searchText), $options: "i" } },
-        { 'contractAddress': { $regex: new RegExp(searchText), $options: "i" } }
+        { name: { $regex: new RegExp(searchText), $options: "i" } },
+        { contractAddress: { $regex: new RegExp(searchText), $options: "i" } },
       ];
     }
     let searchObj = Object.assign({}, searchArray);
@@ -492,12 +492,10 @@ controllers.getUpcomingCollections = async (req, res) => {
     res.header("Access-Control-Max-Age", 600);
     return res.reply(messages.success("Collection List"), results);
   } catch (error) {
-    console.log("Error " + error)
+    console.log("Error " + error);
     return res.reply(messages.server_error());
   }
 };
-
-
 
 controllers.createNFT = async (req, res) => {
   try {
@@ -700,39 +698,44 @@ controllers.viewNFTs = async (req, res) => {
     const endIndex = page * limit;
 
     let nftID = "";
-    if(req.body.nftID && req.body.nftID !== undefined){
+    if (req.body.nftID && req.body.nftID !== undefined) {
       nftID = req.body.nftID;
     }
     let userID = "";
-    if(req.body.userID && req.body.userID !== undefined){
+    if (req.body.userID && req.body.userID !== undefined) {
       userID = req.body.userID;
     }
     let collectionID = "";
-    if(req.body.collectionID && req.body.collectionID !== undefined){
+    if (req.body.collectionID && req.body.collectionID !== undefined) {
       collectionID = req.body.collectionID;
     }
     let categoryID = "";
-    if(req.body.categoryID && req.body.categoryID !== undefined){
+    if (req.body.categoryID && req.body.categoryID !== undefined) {
       categoryID = req.body.categoryID;
     }
     let brandID = "";
-    if(req.body.brandID && req.body.brandID !== undefined){
+    if (req.body.brandID && req.body.brandID !== undefined) {
       brandID = req.body.brandID;
     }
     let ERCType = "";
-    if(req.body.ERCType && req.body.ERCType !== undefined){
+    if (req.body.ERCType && req.body.ERCType !== undefined) {
       ERCType = req.body.ERCType;
     }
     let searchText = "";
-    if(req.body.searchText && req.body.searchText !== undefined){
+    if (req.body.searchText && req.body.searchText !== undefined) {
       searchText = req.body.searchText;
     }
     let isMinted = "";
-    if(req.body.isMinted && req.body.isMinted !== undefined){
+    if (req.body.isMinted && req.body.isMinted !== undefined) {
       isMinted = req.body.isMinted;
+    }
+    let isLazyMinted = "";
+    if (req.body.isLazyMinted && req.body.isLazyMinted !== undefined) {
+      isLazyMinted = req.body.isLazyMinted;
     }
 
     let searchArray = [];
+
     if (nftID !== "") {
       searchArray["_id"] = mongoose.Types.ObjectId(nftID);
     }
@@ -757,9 +760,15 @@ controllers.viewNFTs = async (req, res) => {
     if (searchText !== "") {
       searchArray["name"] = { $regex: new RegExp(searchText), $options: "i" };
     }
+    console.log("isLazyMinted == 1", isLazyMinted == 1);
+    if (isLazyMinted !== "") {
+      if (isLazyMinted == 1) searchArray["lazyMintingStatus"] = 1;
+      else if(isLazyMinted == 0) searchArray["lazyMintingStatus"] = 0;
+    }
+
     let searchObj = Object.assign({}, searchArray);
 
-    console.log(searchObj);
+    console.log("searchArray", searchArray);
 
     const results = {};
     if (endIndex < (await NFT.countDocuments(searchObj).exec())) {
@@ -775,6 +784,7 @@ controllers.viewNFTs = async (req, res) => {
       };
     }
 
+    console.log("search obkj", searchObj);
     await NFT.find(searchObj)
       .populate("collectionID")
       .populate("categoryID")
@@ -794,6 +804,65 @@ controllers.viewNFTs = async (req, res) => {
     results.results = data;
     res.header("Access-Control-Max-Age", 600);
     return res.reply(messages.success("NFT List"), results);
+  } catch (error) {
+    console.log("Error " + error);
+    return res.reply(messages.server_error());
+  }
+};
+
+controllers.myNFTs = async (req, res) => {
+  try {
+    if (!req.userId) return res.reply(messages.unauthorized());
+    let data = [];
+    const page = parseInt(req.body.page);
+    const limit = parseInt(req.body.limit);
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    let searchText = "";
+    if (req.body.searchText && req.body.searchText !== undefined) {
+      searchText = req.body.searchText;
+    }
+
+    let searchArray = [];
+    searchArray["createdBy"] = mongoose.Types.ObjectId(req.userId);
+    if (searchText !== "") {
+      searchArray["or"] = [
+        { name: { $regex: new RegExp(searchText), $options: "i" } },
+        { contractAddress: { $regex: new RegExp(searchText), $options: "i" } },
+      ];
+    }
+    let searchObj = Object.assign({}, searchArray);
+
+    const results = {};
+    if (endIndex < (await NFT.countDocuments(searchObj).exec())) {
+      results.next = {
+        page: page + 1,
+        limit: limit,
+      };
+    }
+    if (startIndex > 0) {
+      results.previous = {
+        page: page - 1,
+        limit: limit,
+      };
+    }
+
+    await NFT.find(searchObj)
+      .sort({ createdOn: -1 })
+      .limit(limit)
+      .skip(startIndex)
+      .lean()
+      .exec()
+      .then((res) => {
+        data.push(res);
+      })
+      .catch((e) => {
+        console.log("Error", e);
+      });
+    results.count = await NFT.countDocuments(searchObj).exec();
+    results.results = data;
+    res.header("Access-Control-Max-Age", 600);
+    return res.reply(messages.success("Collection List"), results);
   } catch (error) {
     console.log("Error " + error);
     return res.reply(messages.server_error());
