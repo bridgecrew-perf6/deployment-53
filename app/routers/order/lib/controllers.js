@@ -71,11 +71,7 @@ controllers.updateOrder = async (req, res) => {
     if (!req.userId) return res.reply(messages.unauthorized());
 
     let lazyMintingStatus = Number(req.body.LazyMintingStatus);
-    if (lazyMintingStatus === 0) {
-      lazyMintingStatus = 0;
-    } else if (lazyMintingStatus === 1 || lazyMintingStatus === 2) {
-      lazyMintingStatus = 2;
-    }
+   
 
     if (!req.body.nftID) {
       return res.reply(messages.bad_request(), "NFTID is required.");
@@ -84,7 +80,7 @@ controllers.updateOrder = async (req, res) => {
         { _id: req.body.orderId },
         {
           $set: {
-            quantity_sold: req.body.quantity_sold,
+            quantity_sold: req.body.qty_sold,
           },
         },
         {
@@ -97,7 +93,7 @@ controllers.updateOrder = async (req, res) => {
     }
     let NFTData = await NFT.findOne({
       _id: mongoose.Types.ObjectId(req.body.nftID),
-      "ownedBy.address": req.body.oSeller,
+      "ownedBy.address": req.body.seller.toLowerCase(),
     }).select("ownedBy -_id");
 
     console.log("NFTData-------->", NFTData);
