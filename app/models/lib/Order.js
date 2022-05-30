@@ -32,7 +32,7 @@ const orderSchema = mongoose.Schema({
   tokenAddress: {
     type: String,
   },
-  deadline: {
+  deadlineDate: {
     type: Date,
   },
   paymentToken: {

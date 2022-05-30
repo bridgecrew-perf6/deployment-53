@@ -77,27 +77,27 @@ controllers.register = (req, res) => {
     if (!req.body.walletAddress)
       return res.reply(messages.required_field("Wallet Address"));
 
-    bcrypt.hash(req.body.walletAddress, saltRounds, (err, hash) => {
+    bcrypt.hash(req.body.walletAddress?.toLowerCase(), saltRounds, (err, hash) => {
       if (err) return res.reply(messages.error());
-      if (!req.body.walletAddress)
+      if (!req.body.walletAddress?.toLowerCase())
         return res.reply(messages.required_field("Wallet Address"));
 
       const user = new User({
 
-        walletAddress: _.toChecksumAddress(req.body.walletAddress)
+        walletAddress: _.toChecksumAddress(req.body.walletAddress?.toLowerCase())
 
       });
-      console.log("Wallet " + req.body.walletAddress)
+      console.log("Wallet " + req.body.walletAddress?.toLowerCase())
       user
         .save()
         .then((result) => {
           let token = signJWT(user);
           req.session["_id"] = user._id;
-          req.session["walletAddress"] = user.walletAddress;
+          req.session["walletAddress"] = user.walletAddress?.toLowerCase();
           return res.reply(messages.created("User"), {
             auth: true,
             token,
-            walletAddress: user.walletAddress,
+            walletAddress: user.walletAddress?.toLowerCase(),
           });
         })
         .catch((error) => {
