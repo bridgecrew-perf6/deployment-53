@@ -61,6 +61,21 @@ let oMulterObj = {
   fileFilter: fileFilter,
 };
 
+controllers.getIndividualUser = async (req, res) => {
+  try {
+    if (!req.userId) return res.reply(messages.unauthorized());
+    if (!req.params.userID)
+      return res.reply(messages.not_found("User ID"));
+
+    User.findById(req.userId, (err, user) => {
+      if (err) return res.reply(messages.server_error());
+      if (!user) return res.reply(messages.not_found("User"));
+      return res.reply(messages.successfully("User Details Found"), user);
+    });
+  } catch (error) {
+    return res.reply(messages.server_error());
+  }
+};
 
 controllers.getUsers = async (req, res) => {
   try {
@@ -280,21 +295,7 @@ controllers.getAllUsers = async (req, res) => {
   }
 };
 
-controllers.getIndividualUser = async (req, res) => {
-  try {
-    if (!req.userId) return res.reply(messages.unauthorized());
-    if (!req.params.userID)
-      return res.reply(messages.not_found("User ID"));
 
-    User.findById(req.userId, (err, user) => {
-      if (err) return res.reply(messages.server_error());
-      if (!user) return res.reply(messages.not_found("User"));
-      return res.reply(messages.successfully("User Details Found"), user);
-    });
-  } catch (error) {
-    return res.reply(messages.server_error());
-  }
-};
 
 controllers.blockUser = async (req, res) => {
   try {
@@ -1163,6 +1164,7 @@ controllers.getAllUserDetails = async (req, res) => {
     return res.reply(messages.server_error());
   }
 };
+
 controllers.followUser = async (req, res) => {
   try {
     if (!req.userId) return res.reply(messages.unauthorized());
