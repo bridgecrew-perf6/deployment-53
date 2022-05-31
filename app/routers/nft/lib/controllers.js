@@ -212,13 +212,13 @@ controllers.getCollections = async (req, res) => {
       searchArray["salesCount"] = { $gte: 0 };
     }
     if (searchText !== "") {
-      searchArray["or"] = [
-        { name: { $regex: new RegExp(searchText), $options: "i" } },
-        { contractAddress: { $regex: new RegExp(searchText), $options: "i" } },
-      ];
+      let searchKey = new RegExp(searchText,'i');
+      searchArray["name"] = searchKey;
+      // searchArray["or"] =  [{ contractAddress:searchKey }];
     }
     let searchObj = Object.assign({}, searchArray);
-    console.log("Obj" + searchObj);
+
+    console.log("Obj", searchObj);
     const results = {};
     if (endIndex < (await Collection.countDocuments(searchObj).exec())) {
       results.next = {
