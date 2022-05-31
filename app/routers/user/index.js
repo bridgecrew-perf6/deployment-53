@@ -2,10 +2,18 @@ const router = require("express").Router();
 const userController = require("./lib/controllers");
 const userMiddleware = require("./lib/middleware");
 
-router.post( "/allDetails", userMiddleware.verifyWithoutToken, userController.getAllUserDetails);
-router.get("/getIndividualUser/:userID", userMiddleware.verifyToken, userController.getIndividualUser);
-// router.post("/getUsers", userMiddleware.verifyToken, userController.getUsers);
-// router.post("/getAllUsers",  userController.getAllUsers);
+router.post(
+  "/allDetails",
+  userMiddleware.verifyWithoutToken,
+  userController.getAllUsers
+);
+router.get(
+  "/getIndividualUser/:userID",
+  userMiddleware.verifyToken,
+  userController.getIndividualUser
+);
+// router.post("/getUsers", userController.getUsers);
+router.post("/getAllUsers", userController.getAllUsers);
 
 // router.post("/blockUser", userMiddleware.verifyToken, userController.blockUser);
 
@@ -24,12 +32,8 @@ router.get("/getIndividualUser/:userID", userMiddleware.verifyToken, userControl
 // router.post("/profileDetail", userController.getUserProfilewithNfts);
 // router.post( "/profileWithNfts", userMiddleware.verifyWithoutToken, userController.getUserWithNfts);
 
-
-
-
 // router.put("/updateProfile", userMiddleware.verifyToken, userController.updateProfile);
 // router.post("/getAllUsers", userMiddleware.verifyToken, userController.getAllUsers);
-
 
 // router.post("/follow", userMiddleware.verifyToken, userController.followUser);
 
