@@ -789,6 +789,7 @@ controllers.viewNFTs = async (req, res) => {
       .populate("collectionID")
       .populate("categoryID")
       .populate("brandID")
+      .populate("createdBy")
       .sort({ createdOn: -1 })
       .limit(limit)
       .skip(startIndex)
@@ -2725,7 +2726,7 @@ controllers.getOwnedNFTlist = async (req, res) => {
       if (
         endIndex <
         (await NFT.countDocuments({
-          nOwnedBy: {
+          ownedBy: {
             $elemMatch: {
               address: req.body.userWalletAddress,
               quantity: { $gt: 0 },
@@ -2747,7 +2748,7 @@ controllers.getOwnedNFTlist = async (req, res) => {
       }
 
       await NFT.find({
-        nOwnedBy: {
+        ownedBy: {
           $elemMatch: {
             address: req.body.userWalletAddress,
             quantity: { $gt: 0 },
@@ -2755,36 +2756,22 @@ controllers.getOwnedNFTlist = async (req, res) => {
         },
       })
         .select({
-          nTitle: 1,
-          nCollection: 1,
-          nHash: 1,
-          nUser_likes: 1,
-          nNftImage: 1,
-          nLazyMintingStatus: 1,
+          name: 1,
+          collectionID: 1,
+          hash: 1,
+          image: 1,
+          lazyMintingStatus: 1,
         })
+        .populate("collectionID")
         .populate({
-          path: "nOrders",
-          options: {
-            limit: 1,
-          },
-          select: {
-            oPrice: 1,
-            oType: 1,
-            oValidUpto: 1,
-            auction_end_date: 1,
-            oStatus: 1,
-            _id: 0,
-          },
-        })
-        .populate({
-          path: "nCreater",
+          path: "createdBy",
           options: {
             limit: 1,
           },
           select: {
             _id: 1,
-            sProfilePicUrl: 1,
-            sWalletAddress: 1,
+            profileIcon: 1,
+            walletAddress: 1,
           },
         })
         .limit(limit)
@@ -2800,7 +2787,7 @@ controllers.getOwnedNFTlist = async (req, res) => {
 
       // console.log("ress", resust);
       results.count = await NFT.countDocuments({
-        nOwnedBy: {
+        ownedBy: {
           $elemMatch: {
             address: req.body.userWalletAddress,
             quantity: { $gt: 0 },
@@ -2828,38 +2815,25 @@ controllers.getOwnedNFTlist = async (req, res) => {
       }
 
       await NFT.find({
-        nCreater: { $in: [mongoose.Types.ObjectId(req.body.userId)] },
+        createdBy: { $in: [mongoose.Types.ObjectId(req.body.userId)] },
       })
         .select({
-          nTitle: 1,
-          nCollection: 1,
-          nHash: 1,
-          nUser_likes: 1,
-          nNftImage: 1,
+          name: 1,
+          collectionID: 1,
+          hash: 1,
+          image: 1,
+          lazyMintingStatus: 1,
         })
+        .populate("collectionID")
         .populate({
-          path: "nOrders",
-          options: {
-            limit: 1,
-          },
-          select: {
-            oPrice: 1,
-            oType: 1,
-            oValidUpto: 1,
-            auction_end_date: 1,
-            oStatus: 1,
-            _id: 0,
-          },
-        })
-        .populate({
-          path: "nCreater",
+          path: "createdBy",
           options: {
             limit: 1,
           },
           select: {
             _id: 1,
-            sProfilePicUrl: 1,
-            sWalletAddress: 1,
+            profileIcon: 1,
+            walletAddress: 1,
           },
         })
         .limit(limit)
@@ -2875,7 +2849,7 @@ controllers.getOwnedNFTlist = async (req, res) => {
 
       // console.log("ress", resust);
       results.count = await NFT.countDocuments({
-        nCreater: { $in: [mongoose.Types.ObjectId(req.body.userId)] },
+        createdBy: { $in: [mongoose.Types.ObjectId(req.body.userId)] },
       }).exec();
     }
 

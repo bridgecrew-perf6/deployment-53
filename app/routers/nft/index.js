@@ -119,7 +119,7 @@ router.post(
 //   nftController.uploadImage
 // );
 // router.get("/getAllNfts", nftController.getAllNfts);
-// router.post("/getOwnedNFTList", nftController.getOwnedNFTlist);
+router.post("/getOwnedNFTList", nftController.getOwnedNFTlist);
 // router.post("/getUserLikedNfts", nftController.getUserLikedNfts);
 // router.post("/getUserOnSaleNfts", nftController.getUserOnSaleNfts);
 // router.put(
