@@ -77,150 +77,150 @@ controllers.getIndividualUser = async (req, res) => {
   }
 };
 
-controllers.getUsers = async (req, res) => {
-  try {
-    if (!req.userId) return res.reply(messages.unauthorized());
-    let data = [];
-    let searchText = req.body.searchText;
-    const page = parseInt(req.body.page);
-    const limit = parseInt(req.body.limit);
-    const startIndex = (page - 1) * limit;
-    const endIndex = page * limit;
-    let UserSearchArray = [];
+// controllers.getUsers = async (req, res) => {
+//   try {
+//     if (!req.userId) return res.reply(messages.unauthorized());
+//     let data = [];
+//     let searchText = req.body.searchText;
+//     const page = parseInt(req.body.page);
+//     const limit = parseInt(req.body.limit);
+//     const startIndex = (page - 1) * limit;
+//     const endIndex = page * limit;
+//     let UserSearchArray = [];
 
-    User.findById(req.userId, async (err, userData) => {
-      if (err) return res.reply(messages.server_error());
-      if (!userData) return res.reply(messages.not_found("User"));
-      if (userData.role == "admin") {
+//     User.findById(req.userId, async (err, userData) => {
+//       if (err) return res.reply(messages.server_error());
+//       if (!userData) return res.reply(messages.not_found("User"));
+//       if (userData.role == "admin") {
         
-        UserSearchArray["role"] = "user";
-        if (searchText !== "") {
-          UserSearchArray["or"] = [
-            { 'email': { $regex: new RegExp(searchText), $options: "i" } },
-            { 'username': { $regex: new RegExp(searchText), $options: "i" } },
-            { 'fullname': { $regex: new RegExp(searchText), $options: "i" } },
-            { 'walletAddress': { $regex: new RegExp(searchText), $options: "i" } }
-          ];
-        }
-        let UserSearchObj = Object.assign({}, UserSearchArray);
-        const results = {};
-        if (endIndex < (await User.countDocuments(UserSearchObj).exec())) {
-          results.next = {
-            page: page + 1,
-            limit: limit,
-          };
-        }
-        if (startIndex > 0) {
-          results.previous = {
-            page: page - 1,
-            limit: limit,
-          };
-        }
-        await User.find(UserSearchObj)
-          .sort({ createdOn: -1 })
-          .select({
-            walletAddress: 1,
-            username: 1,
-            fullname: 1,
-            email: 1,
-            profileIcon: 1,
-            phoneNo: 1,
-            role: 1,
-            status: 1,
-            bio: 1,
-            user_followings: 1,
-            user_followers_size: 1,
-            createdBy: 1,
-            createdOn: 1,
-            lastUpdatedBy: 1,
-            lastUpdatedOn: 1
-          })
-          .limit(limit)
-          .skip(startIndex)
-          .lean()
-          .exec()
-          .then((res) => {
-            data.push(res);
-          })
-          .catch((e) => {
-            console.log("Error", e);
-          });
+//         UserSearchArray["role"] = "user";
+//         if (searchText !== "") {
+//           UserSearchArray["or"] = [
+//             { 'email': { $regex: new RegExp(searchText), $options: "i" } },
+//             { 'username': { $regex: new RegExp(searchText), $options: "i" } },
+//             { 'fullname': { $regex: new RegExp(searchText), $options: "i" } },
+//             { 'walletAddress': { $regex: new RegExp(searchText), $options: "i" } }
+//           ];
+//         }
+//         let UserSearchObj = Object.assign({}, UserSearchArray);
+//         const results = {};
+//         if (endIndex < (await User.countDocuments(UserSearchObj).exec())) {
+//           results.next = {
+//             page: page + 1,
+//             limit: limit,
+//           };
+//         }
+//         if (startIndex > 0) {
+//           results.previous = {
+//             page: page - 1,
+//             limit: limit,
+//           };
+//         }
+//         await User.find(UserSearchObj)
+//           .sort({ createdOn: -1 })
+//           .select({
+//             walletAddress: 1,
+//             username: 1,
+//             fullname: 1,
+//             email: 1,
+//             profileIcon: 1,
+//             phoneNo: 1,
+//             role: 1,
+//             status: 1,
+//             bio: 1,
+//             user_followings: 1,
+//             user_followers_size: 1,
+//             createdBy: 1,
+//             createdOn: 1,
+//             lastUpdatedBy: 1,
+//             lastUpdatedOn: 1
+//           })
+//           .limit(limit)
+//           .skip(startIndex)
+//           .lean()
+//           .exec()
+//           .then((res) => {
+//             data.push(res);
+//           })
+//           .catch((e) => {
+//             console.log("Error", e);
+//           });
 
-        results.count = await User.countDocuments(UserSearchObj).exec();
-        results.results = data;
-        res.header("Access-Control-Max-Age", 600);
-        return res.reply(messages.success("User List"), results);
+//         results.count = await User.countDocuments(UserSearchObj).exec();
+//         results.results = data;
+//         res.header("Access-Control-Max-Age", 600);
+//         return res.reply(messages.success("User List"), results);
 
-      } else if (userData.role == "superadmin") {
+//       } else if (userData.role == "superadmin") {
 
-        UserSearchArray["_id"] = mongoose.Types.ObjectId(req.userId);;
-        if (searchText !== "") {
-          UserSearchArray["or"] = [
-            { 'email': { $regex: new RegExp(searchText), $options: "i" } },
-            { 'username': { $regex: new RegExp(searchText), $options: "i" } },
-            { 'fullname': { $regex: new RegExp(searchText), $options: "i" } },
-            { 'walletAddress': { $regex: new RegExp(searchText), $options: "i" } }
-          ];
-        }
-        let UserSearchObj = Object.assign({}, UserSearchArray);
-        const results = {};
-        if (endIndex < (await User.countDocuments(UserSearchObj).exec())) {
-          results.next = {
-            page: page + 1,
-            limit: limit,
-          };
-        }
-        if (startIndex > 0) {
-          results.previous = {
-            page: page - 1,
-            limit: limit,
-          };
-        }
-        await User.find(UserSearchObj)
-          .sort({ createdOn: -1 })
-          .select({
-            walletAddress: 1,
-            username: 1,
-            fullname: 1,
-            email: 1,
-            profileIcon: 1,
-            phoneNo: 1,
-            role: 1,
-            status: 1,
-            bio: 1,
-            user_followings: 1,
-            user_followers_size: 1,
-            createdBy: 1,
-            createdOn: 1,
-            lastUpdatedBy: 1,
-            lastUpdatedOn: 1
-          })
-          .limit(limit)
-          .skip(startIndex)
-          .lean()
-          .exec()
-          .then((res) => {
-            data.push(res);
-          })
-          .catch((e) => {
-            console.log("Error", e);
-          });
+//         UserSearchArray["_id"] = mongoose.Types.ObjectId(req.userId);;
+//         if (searchText !== "") {
+//           UserSearchArray["or"] = [
+//             { 'email': { $regex: new RegExp(searchText), $options: "i" } },
+//             { 'username': { $regex: new RegExp(searchText), $options: "i" } },
+//             { 'fullname': { $regex: new RegExp(searchText), $options: "i" } },
+//             { 'walletAddress': { $regex: new RegExp(searchText), $options: "i" } }
+//           ];
+//         }
+//         let UserSearchObj = Object.assign({}, UserSearchArray);
+//         const results = {};
+//         if (endIndex < (await User.countDocuments(UserSearchObj).exec())) {
+//           results.next = {
+//             page: page + 1,
+//             limit: limit,
+//           };
+//         }
+//         if (startIndex > 0) {
+//           results.previous = {
+//             page: page - 1,
+//             limit: limit,
+//           };
+//         }
+//         await User.find(UserSearchObj)
+//           .sort({ createdOn: -1 })
+//           .select({
+//             walletAddress: 1,
+//             username: 1,
+//             fullname: 1,
+//             email: 1,
+//             profileIcon: 1,
+//             phoneNo: 1,
+//             role: 1,
+//             status: 1,
+//             bio: 1,
+//             user_followings: 1,
+//             user_followers_size: 1,
+//             createdBy: 1,
+//             createdOn: 1,
+//             lastUpdatedBy: 1,
+//             lastUpdatedOn: 1
+//           })
+//           .limit(limit)
+//           .skip(startIndex)
+//           .lean()
+//           .exec()
+//           .then((res) => {
+//             data.push(res);
+//           })
+//           .catch((e) => {
+//             console.log("Error", e);
+//           });
 
-        results.count = await User.countDocuments(UserSearchObj).exec();
-        results.results = data;
-        res.header("Access-Control-Max-Age", 600);
-        return res.reply(messages.success("User List"), results);
+//         results.count = await User.countDocuments(UserSearchObj).exec();
+//         results.results = data;
+//         res.header("Access-Control-Max-Age", 600);
+//         return res.reply(messages.success("User List"), results);
 
-      } else {
-        return res.reply(messages.unauthorized());
-      }
+//       } else {
+//         return res.reply(messages.unauthorized());
+//       }
 
-    });
-  } catch (error) {
-    console.log("Error:", error);
-    return res.reply(messages.error());
-  }
-};
+//     });
+//   } catch (error) {
+//     console.log("Error:", error);
+//     return res.reply(messages.error());
+//   }
+// };
 
 controllers.getAllUsers = async (req, res) => {
   try {
@@ -1023,147 +1023,147 @@ controllers.getUserWithNfts = async (req, res) => {
   }
 };
 
-controllers.getAllUserDetails = async (req, res) => {
-  try {
-    let data = [];
-    const page = parseInt(req.body.page);
-    const limit = parseInt(req.body.limit);
-    const startIndex = (page - 1) * limit;
-    const endIndex = page * limit;
-    let sTextsearch = req.body.sTextsearch;
+// controllers.getAllUserDetails = async (req, res) => {
+//   try {
+//     let data = [];
+//     const page = parseInt(req.body.page);
+//     const limit = parseInt(req.body.limit);
+//     const startIndex = (page - 1) * limit;
+//     const endIndex = page * limit;
+//     let sTextsearch = req.body.sTextsearch;
 
-    let UserSearchArray = [];
-    if (req.userId) {
-      UserSearchArray["_id"] = { $ne: mongoose.Types.ObjectId(req.userId) };
-    }
+//     let UserSearchArray = [];
+//     if (req.userId) {
+//       UserSearchArray["_id"] = { $ne: mongoose.Types.ObjectId(req.userId) };
+//     }
 
-    let UserSearchObj = Object.assign({}, UserSearchArray);
-    console.log(UserSearchObj);
-    let totalCount = 0;
-    if (sTextsearch === "") {
-      totalCount = await User.countDocuments(UserSearchObj).exec()
-    } else {
-      totalCount = await User.countDocuments({
-        '_id': { $ne: mongoose.Types.ObjectId(req.userId) },
-        $or: [
-          {
-            "$expr": {
-              "$regexMatch": {
-                "input": { "$concat": ["$Name.Firstname", " ", "$Name.Lastname"] },
-                "regex": new RegExp(sTextsearch),  //Your text search here
-                "options": "i"
-              }
-            }
-          },
-          { 'username': { $regex: new RegExp(sTextsearch), $options: "i" } },
-          { 'swalletAddress': { $regex: new RegExp(sTextsearch), $options: "i" } }
-        ]
-      }).exec()
-    }
+//     let UserSearchObj = Object.assign({}, UserSearchArray);
+//     console.log(UserSearchObj);
+//     let totalCount = 0;
+//     if (sTextsearch === "") {
+//       totalCount = await User.countDocuments(UserSearchObj).exec()
+//     } else {
+//       totalCount = await User.countDocuments({
+//         '_id': { $ne: mongoose.Types.ObjectId(req.userId) },
+//         $or: [
+//           {
+//             "$expr": {
+//               "$regexMatch": {
+//                 "input": { "$concat": ["$Name.Firstname", " ", "$Name.Lastname"] },
+//                 "regex": new RegExp(sTextsearch),  //Your text search here
+//                 "options": "i"
+//               }
+//             }
+//           },
+//           { 'username': { $regex: new RegExp(sTextsearch), $options: "i" } },
+//           { 'swalletAddress': { $regex: new RegExp(sTextsearch), $options: "i" } }
+//         ]
+//       }).exec()
+//     }
 
-    const results = {};
-    if (endIndex < totalCount) {
-      results.next = {
-        page: page + 1,
-        limit: limit,
-      };
-    }
-    if (startIndex > 0) {
-      results.previous = {
-        page: page - 1,
-        limit: limit,
-      };
-    }
-    if (sTextsearch !== "") {
-      await User.find(UserSearchObj)
-        .find({
-          $or: [
-            {
-              "$expr": {
-                "$regexMatch": {
-                  "input": { "$concat": ["$Name.Firstname", " ", "$Name.Lastname"] },
-                  "regex": new RegExp(sTextsearch),  //Your text search here
-                  "options": "i"
-                }
-              }
-            },
-            { 'username': { $regex: new RegExp(sTextsearch), $options: "i" } },
-            { 'swalletAddress': { $regex: new RegExp(sTextsearch), $options: "i" } }
-          ]
-        })
-        .sort({ sCreated: -1 })
-        .select({
-          swalletAddress: 1,
-          username: 1,
-          email: 1,
-          Name: 1,
-          srole: 1,
-          sCreated: 1,
-          sStatus: 1,
-          sHash: 1,
-          bio: 1,
-          Website: 1,
-          profileIcon: 1,
-          aCollaborators: 1,
-          sResetPasswordToken: 1,
-          sResetPasswordExpires: 1,
-          is_user_following: "false",
-          user_followings: 1
-        })
-        .limit(limit)
-        .skip(startIndex)
-        .lean()
-        .exec()
-        .then((res) => {
-          data.push(res);
-        })
-        .catch((e) => {
-          console.log("Error", e);
-        });
+//     const results = {};
+//     if (endIndex < totalCount) {
+//       results.next = {
+//         page: page + 1,
+//         limit: limit,
+//       };
+//     }
+//     if (startIndex > 0) {
+//       results.previous = {
+//         page: page - 1,
+//         limit: limit,
+//       };
+//     }
+//     if (sTextsearch !== "") {
+//       await User.find(UserSearchObj)
+//         .find({
+//           $or: [
+//             {
+//               "$expr": {
+//                 "$regexMatch": {
+//                   "input": { "$concat": ["$Name.Firstname", " ", "$Name.Lastname"] },
+//                   "regex": new RegExp(sTextsearch),  //Your text search here
+//                   "options": "i"
+//                 }
+//               }
+//             },
+//             { 'username': { $regex: new RegExp(sTextsearch), $options: "i" } },
+//             { 'swalletAddress': { $regex: new RegExp(sTextsearch), $options: "i" } }
+//           ]
+//         })
+//         .sort({ sCreated: -1 })
+//         .select({
+//           swalletAddress: 1,
+//           username: 1,
+//           email: 1,
+//           Name: 1,
+//           srole: 1,
+//           sCreated: 1,
+//           sStatus: 1,
+//           sHash: 1,
+//           bio: 1,
+//           Website: 1,
+//           profileIcon: 1,
+//           aCollaborators: 1,
+//           sResetPasswordToken: 1,
+//           sResetPasswordExpires: 1,
+//           is_user_following: "false",
+//           user_followings: 1
+//         })
+//         .limit(limit)
+//         .skip(startIndex)
+//         .lean()
+//         .exec()
+//         .then((res) => {
+//           data.push(res);
+//         })
+//         .catch((e) => {
+//           console.log("Error", e);
+//         });
 
-    } else {
+//     } else {
 
-      await User.find(UserSearchObj)
-        .sort({ sCreated: -1 })
-        .select({
-          swalletAddress: 1,
-          username: 1,
-          email: 1,
-          Name: 1,
-          srole: 1,
-          sCreated: 1,
-          sStatus: 1,
-          sHash: 1,
-          bio: 1,
-          Website: 1,
-          profileIcon: 1,
-          aCollaborators: 1,
-          sResetPasswordToken: 1,
-          sResetPasswordExpires: 1,
-          is_user_following: "false",
-          user_followings: 1
-        })
-        .limit(limit)
-        .skip(startIndex)
-        .lean()
-        .exec()
-        .then((res) => {
-          data.push(res);
-        })
-        .catch((e) => {
-          console.log("Error", e);
-        });
-    }
+//       await User.find(UserSearchObj)
+//         .sort({ sCreated: -1 })
+//         .select({
+//           swalletAddress: 1,
+//           username: 1,
+//           email: 1,
+//           Name: 1,
+//           srole: 1,
+//           sCreated: 1,
+//           sStatus: 1,
+//           sHash: 1,
+//           bio: 1,
+//           Website: 1,
+//           profileIcon: 1,
+//           aCollaborators: 1,
+//           sResetPasswordToken: 1,
+//           sResetPasswordExpires: 1,
+//           is_user_following: "false",
+//           user_followings: 1
+//         })
+//         .limit(limit)
+//         .skip(startIndex)
+//         .lean()
+//         .exec()
+//         .then((res) => {
+//           data.push(res);
+//         })
+//         .catch((e) => {
+//           console.log("Error", e);
+//         });
+//     }
 
-    results.count = totalCount;
-    results.results = data;
-    res.header('Access-Control-Max-Age', 600);
-    return res.reply(messages.success("Author List"), results);
-  } catch (error) {
-    log.red(error);
-    return res.reply(messages.server_error());
-  }
-};
+//     results.count = totalCount;
+//     results.results = data;
+//     res.header('Access-Control-Max-Age', 600);
+//     return res.reply(messages.success("Author List"), results);
+//   } catch (error) {
+//     log.red(error);
+//     return res.reply(messages.server_error());
+//   }
+// };
 
 controllers.followUser = async (req, res) => {
   try {
