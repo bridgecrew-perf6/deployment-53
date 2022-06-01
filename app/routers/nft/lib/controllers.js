@@ -213,7 +213,7 @@ controllers.getCollections = async (req, res) => {
     }
     if (searchText !== "") {
       let searchKey = new RegExp(searchText,'i');
-      searchArray["name"] = searchKey;
+      searchArray["$or"] = [{name: searchKey}, {contractAddress:searchKey}];
       // searchArray["or"] =  [{ contractAddress:searchKey }];
     }
     let searchObj = Object.assign({}, searchArray);
@@ -273,7 +273,7 @@ controllers.myCollections = async (req, res) => {
     let searchArray = [];
     searchArray["createdBy"] = mongoose.Types.ObjectId(req.userId);
     if (searchText !== "") {
-      searchArray["or"] = [
+      searchArray["$or"] = [
         { name: { $regex: new RegExp(searchText), $options: "i" } },
         { contractAddress: { $regex: new RegExp(searchText), $options: "i" } },
       ];
@@ -452,7 +452,7 @@ controllers.getUpcomingCollections = async (req, res) => {
     let searchArray = [];
     searchArray["preSaleStartTime"] = { $lt: new Date() };
     if (searchText !== "") {
-      searchArray["or"] = [
+      searchArray["$or"] = [
         { name: { $regex: new RegExp(searchText), $options: "i" } },
         { contractAddress: { $regex: new RegExp(searchText), $options: "i" } },
       ];
@@ -827,7 +827,7 @@ controllers.myNFTs = async (req, res) => {
     let searchArray = [];
     searchArray["createdBy"] = mongoose.Types.ObjectId(req.userId);
     if (searchText !== "") {
-      searchArray["or"] = [
+      searchArray["$or"] = [
         { name: { $regex: new RegExp(searchText), $options: "i" } },
         { contractAddress: { $regex: new RegExp(searchText), $options: "i" } },
       ];

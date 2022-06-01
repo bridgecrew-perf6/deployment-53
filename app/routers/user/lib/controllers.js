@@ -95,7 +95,7 @@ controllers.getUsers = async (req, res) => {
         
         UserSearchArray["role"] = "user";
         if (searchText !== "") {
-          UserSearchArray["or"] = [
+          UserSearchArray["$or"] = [
             { 'email': { $regex: new RegExp(searchText), $options: "i" } },
             { 'username': { $regex: new RegExp(searchText), $options: "i" } },
             { 'fullname': { $regex: new RegExp(searchText), $options: "i" } },
@@ -155,7 +155,7 @@ controllers.getUsers = async (req, res) => {
 
         UserSearchArray["_id"] = mongoose.Types.ObjectId(req.userId);;
         if (searchText !== "") {
-          UserSearchArray["or"] = [
+          UserSearchArray["$or"] = [
             { 'email': { $regex: new RegExp(searchText), $options: "i" } },
             { 'username': { $regex: new RegExp(searchText), $options: "i" } },
             { 'fullname': { $regex: new RegExp(searchText), $options: "i" } },
@@ -234,7 +234,7 @@ controllers.getAllUsers = async (req, res) => {
     let UserSearchArray = [];
     UserSearchArray["role"] = "user";
     if (searchText !== "") {
-      UserSearchArray["or"] = [
+      UserSearchArray["$or"] = [
         { 'email': { $regex: new RegExp(searchText), $options: "i" } },
         { 'username': { $regex: new RegExp(searchText), $options: "i" } },
         { 'fullname': { $regex: new RegExp(searchText), $options: "i" } },
