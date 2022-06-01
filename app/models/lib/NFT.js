@@ -87,6 +87,10 @@ const nftSchema = mongoose.Schema({
     default: 0,
     enum: [0, 1, 2],
   },
+  quantity_minted: {
+    type: Number,
+    default: 0,
+  },
   user_likes: [
     {
       type: mongoose.Schema.ObjectId,
