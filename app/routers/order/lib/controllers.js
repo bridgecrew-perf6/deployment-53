@@ -73,7 +73,6 @@ controllers.updateOrder = async (req, res) => {
     if (!req.userId) return res.reply(messages.unauthorized());
 
     let lazyMintingStatus = Number(req.body.LazyMintingStatus);
-   
 
     if (!req.body.nftID) {
       return res.reply(messages.bad_request(), "NFTID is required.");
@@ -197,6 +196,7 @@ controllers.updateOrder = async (req, res) => {
       {
         $set: {
           lazyMintingStatus: Number(lazyMintingStatus),
+          quantity_minted: Number(req.body.quantity_minted),
         },
       }
     ).catch((e) => {
